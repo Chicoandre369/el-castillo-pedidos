@@ -1,66 +1,78 @@
-/* El Castillo v0.7.2 - Fix diseno: logo chico solo en header, contenido legible */
-:root{--verde-oscuro:#0F2E1A;--verde:#14532D;--verde-medio:#1A6B3C;--naranja:#F97316;--naranja-oscuro:#EA580C;--crema:#FFFDF5;--gris:#6B7280;--borde:#E5E7EB;--sombra:0 4px 20px rgba(0,0,0,.08)}
+/* El Castillo v0.8.0 - Clean UI mobile-first como captura: cards, bottom nav, badges */
+:root{--verde-oscuro:#0F2E1A;--verde:#14532D;--verde-btn:#1A4D2E;--verde-claro:#DCFCE7;--verde-suave:#F0FDF4;--naranja:#F97316;--crema:#FFFDF5;--fondo:#F8FAF5;--gris:#6B7280;--borde:#E8EDE9;--sombra:0 2px 12px rgba(0,0,0,.06);--sombra-lg:0 8px 24px rgba(0,0,0,.08)}
 *{box-sizing:border-box}
 html{font-size:16px}
-body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--crema);color:#111827;line-height:1.45}
-a{color:var(--verde)}
-/* NUNCA mas logo gigante: cualquier logo queda chico */
-img.logo, img.logo-preview, .topbar-logo{max-width:48px !important;max-height:48px !important;width:44px;height:44px;object-fit:contain}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--fondo);color:#111827;line-height:1.45;padding-bottom:76px}
+img.logo,img.logo-preview,.topbar-logo{max-width:48px !important;max-height:48px !important}
 img#logoPreview[src=""]{display:none}
-/* Topbar - unico header con logo */
-.topbar{background:var(--verde-oscuro);color:#fff;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;z-index:20}
-.topbar-left{display:flex;align-items:center;gap:10px}
-.topbar-logo{width:40px;height:40px;border-radius:50%;background:#fff;padding:3px;flex-shrink:0}
-.topbar-title{font-weight:800;font-size:1rem;line-height:1.1}
-.topbar-sub{font-size:.72rem;opacity:.75}
-.topbar-badges{display:flex;gap:8px}
-.badge{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);padding:6px 10px;border-radius:999px;font-size:.75rem;font-weight:600}
-.badge-naranja{background:var(--naranja);border-color:var(--naranja);color:#fff}
-.banner{background:var(--naranja);color:#fff;text-align:center;padding:8px 12px;font-size:.82rem;font-weight:600}
-/* Contenido: ancho legible, no angosto */
-.wrap{max-width:860px;margin:0 auto;padding:20px 16px 48px}
-.pedidos-head{margin:6px 0 14px}
-.pedidos-title{font-size:1.6rem;font-weight:900;margin:0;letter-spacing:-.02em}
-.pedidos-sub{font-size:.78rem;color:var(--gris);letter-spacing:.08em;margin:2px 0 0;font-weight:700}
-.sub{color:var(--gris);font-size:.95rem;margin:0 0 16px}
-/* Cada section = card blanca como prototipo */
-section{background:#fff;border:1px solid var(--borde);border-radius:16px;box-shadow:var(--sombra);padding:16px 18px;margin-bottom:14px}
-section h2, section h3{font-size:1.1rem;margin:0 0 8px;font-weight:800}
-details summary{font-weight:800;font-size:1rem;cursor:pointer;padding:4px 0;list-style-position:inside}
-details summary::-webkit-details-marker{color:var(--verde)}
-.card{background:#fff;border:1px solid var(--borde);border-radius:16px;box-shadow:var(--sombra);padding:16px;margin-bottom:14px}
-h1{font-size:1.7rem;line-height:1.15;margin:6px 0 4px;font-weight:900}
-h2{font-size:1.15rem;margin:0 0 8px;font-weight:800}
+/* HEADER captura: blanco, logo circular, titulo 2 lineas, carrito */
+.app-header{background:#fff;border-bottom:1px solid var(--borde);position:sticky;top:0;z-index:20;padding:10px 16px 10px}
+.header-main{display:flex;align-items:center;gap:12px;max-width:860px;margin:0 auto}
+.header-logo{width:52px;height:52px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #E8F5E9}
+.header-title{display:flex;flex-direction:column;line-height:1.05;flex:1}
+.ht-1{font-weight:900;font-size:1.35rem;color:var(--verde-oscuro);letter-spacing:-.02em}
+.ht-2{font-weight:800;font-size:1.25rem;color:#5A9A3A;letter-spacing:-.01em}
+.header-badge{display:inline-block;margin-top:4px;background:#FEF3C7;color:#92400E;font-size:.65rem;font-weight:700;padding:3px 7px;border-radius:999px;width:fit-content}
+.cart-btn{position:relative;width:48px;height:48px;border-radius:50%;border:0;background:#F0FDF4;cursor:pointer;font-size:1.4rem;flex-shrink:0}
+.cart-count{position:absolute;top:-2px;right:-2px;background:var(--verde);color:#fff;font-size:.68rem;font-weight:800;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff}
+.banner{display:none}
+.wrap{max-width:560px;margin:0 auto;padding:14px 14px 20px}
+@media(min-width:700px){.wrap{max-width:640px}}
+.sub{color:var(--gris);font-size:.92rem;margin:0 0 12px}
+/* CARDS */
+section,.card{background:#fff;border:1px solid var(--borde);border-radius:20px;box-shadow:var(--sombra);padding:16px;margin-bottom:12px}
+section h2{font-size:1.1rem;margin:0 0 8px}
+details summary{font-weight:700;font-size:.98rem;cursor:pointer;padding:6px 0}
 label{font-size:.88rem;font-weight:600;color:#374151;display:block;margin:10px 0 5px}
-input[type=text],input[type=number],input[type=date],textarea,select{width:100%;padding:12px 12px;border:1px solid #D1D5DB;border-radius:10px;font-size:.98rem;background:#fff}
-textarea{min-height:110px;resize:vertical}
-.btn-primary,.btn-secondary,.btn-tomato,.btn-ghost{border:0;border-radius:10px;padding:13px 14px;font-weight:700;cursor:pointer;font-size:.95rem;width:100%}
-.btn-primary,.btn-secondary{background:var(--verde);color:#fff}
-.btn-tomato{background:var(--naranja);color:#fff}
-.btn-ghost{background:#F3F4F6;color:#111827}
+/* Textarea protagonista */
+#textoInput{min-height:110px !important;padding:14px 14px 14px 14px;border:1.5px solid #D1D5DB;border-radius:14px;font-size:1rem;background:#fff;line-height:1.5}
+#textoInput:focus{outline:2px solid var(--verde);border-color:var(--verde)}
+#textoInput::placeholder{color:#9CA3AF}
+input[type=text],input[type=number],input[type=date],select{width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:.95rem;background:#fff}
+#clienteInput{padding:12px;border-radius:12px}
+/* Boton Analizar = CTA principal */
+#btnAnalizarPedido{background:var(--verde-btn) !important;color:#fff !important;border:0;border-radius:14px !important;padding:14px !important;font-weight:800 !important;font-size:1rem !important;box-shadow:0 4px 14px rgba(20,83,45,.25);display:flex;align-items:center;justify-content:center;gap:8px}
+#btnAnalizarPedido::before{content:"🔍"}
+/* Tarjeta pedido analizado - estilo captura */
+#revisionWrap{background:#fff;border-radius:20px;padding:0}
+#pedidosLista .pedido-card, .pedido-card{background:#fff;border:1px solid var(--borde);border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:var(--sombra)}
+.pedido-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #F3F4F6}
+.pedido-avatar{width:40px;height:40px;border-radius:50%;background:#E8F5E9;display:flex;align-items:center;justify-content:center;font-size:1.2rem}
+.pedido-nombre{font-weight:800;font-size:1.15rem;flex:1}
+.pedido-fecha{background:#FEF3C7;color:#92400E;font-size:.75rem;font-weight:700;padding:5px 9px;border-radius:999px;display:flex;gap:5px;align-items:center}
+/* Items grid con emoji + badge derecha */
+.item-row{display:grid !important;grid-template-columns:1fr 86px 92px 96px 32px;gap:8px;align-items:center;margin-bottom:8px}
+.item-row input,.item-row select{padding:10px 8px;border-radius:10px}
+/* Totales como badges separados */
+.totales{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+.totales span,.badge-kg,.badge-un{background:var(--verde-claro);color:#166534;font-weight:700;font-size:.82rem;padding:6px 10px;border-radius:999px;display:inline-block}
+.totales .total-dinero{background:#FEF3C7;color:#92400E}
+/* Acciones principales lado a lado */
+#btnCompartirWhatsApp{background:#D1FAE5 !important;color:#14532D !important;border:0;border-radius:14px !important;padding:13px 10px !important;font-weight:700 !important;font-size:.88rem !important;flex:1}
+#btnGenerar{background:var(--naranja) !important;color:#fff !important;border:0;border-radius:14px !important;padding:13px 10px !important;font-weight:700 !important;font-size:.88rem !important;flex:1}
+.acciones-principales{display:flex;gap:10px;margin-top:12px}
+.acciones-secundarias{display:flex;justify-content:center;gap:48px;margin-top:14px;padding-top:12px;border-top:1px solid #F3F4F6;font-size:.88rem;color:#374151}
+.acciones-secundarias button{background:none;border:0;cursor:pointer;font-size:.88rem;display:flex;gap:6px;align-items:center;color:#374151}
+/* Botones generales */
+.btn-primary,.btn-secondary{background:var(--verde);color:#fff;border:0;border-radius:12px;padding:12px 14px;font-weight:700;cursor:pointer;width:100%}
+.btn-tomato{background:var(--naranja);color:#fff;border:0;border-radius:12px;padding:12px 14px;font-weight:700;width:100%}
+.btn-ghost{background:#F3F4F6;color:#111827;border:0;border-radius:12px;padding:12px 14px;font-weight:600;width:100%}
 .btn-small{width:auto;padding:9px 12px;font-size:.85rem}
-.btn-whatsapp{background:#25D366;color:#fff;border:0;border-radius:10px;padding:13px 14px;font-weight:700;cursor:pointer;width:100%;margin-top:8px;font-size:.95rem}
-.pill{display:inline-block;background:#FEF3C7;color:#92400E;padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:700}
-.pill-verde{background:#D1FAE5;color:#065F46}
+.btn-whatsapp{background:#D1FAE5;color:#14532D;border:0;border-radius:12px;padding:12px;font-weight:700;width:100%}
+.pill{background:#FEF3C7;color:#92400E;padding:4px 8px;border-radius:999px;font-size:.72rem;font-weight:700}
 .count-badge{background:var(--verde);color:#fff;padding:2px 8px;border-radius:999px;font-size:.75rem}
 .empty-hint{color:var(--gris);font-size:.88rem}
-.status-msg{padding:10px 12px;border-radius:10px;font-size:.88rem;margin:10px 0}
+.status-msg{padding:10px 12px;border-radius:12px;font-size:.88rem;margin:10px 0}
 .status-msg.ok{background:#D1FAE5;color:#065F46}
 .status-msg.warn{background:#FEF3C7;color:#92400E}
-.totales{display:flex;gap:12px;flex-wrap:wrap;font-size:.92rem;font-weight:700}
 .cliente-row,.catalogo-row,.historial-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid #F3F4F6;align-items:center}
-.item-row{display:grid;grid-template-columns:1fr 82px 92px 96px 36px;gap:8px;margin-bottom:8px;align-items:center}
-.item-row input,.item-row select{padding:10px 8px}
 .config-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .col-labels{display:grid;gap:8px;font-size:.78rem;font-weight:700;color:#6B7280;margin:10px 0 4px}
 .catalogo-add{display:grid;grid-template-columns:1fr 82px 92px auto;gap:8px;align-items:center}
-@media(max-width:640px){
-  .wrap{padding:14px 12px 40px}
-  .topbar-badges{display:none}
-  .topbar-title{font-size:.92rem}
-  h1{font-size:1.45rem}
-  section{padding:14px}
-  .item-row{grid-template-columns:1fr 64px 76px 72px 32px;gap:6px}
-  .catalogo-add{grid-template-columns:1fr 70px 80px auto}
-}
-@media(min-width:900px){.wrap{max-width:860px}}
+/* BOTTOM NAV fija */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--borde);display:flex;justify-content:space-around;padding:8px 8px calc(8px + env(safe-area-inset-bottom));z-index:30;box-shadow:0 -2px 12px rgba(0,0,0,.06)}
+.nav-item{border:0;background:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:1.35rem;color:#9CA3AF;padding:4px 10px;border-radius:12px}
+.nav-item span{font-size:.68rem;font-weight:600}
+.nav-item.active{color:var(--verde);background:#F0FDF4}
+.nav-item.active span{color:var(--verde)}
+@media(max-width:640px){.item-row{grid-template-columns:1fr 64px 76px 72px 32px;gap:6px}.catalogo-add{grid-template-columns:1fr 70px 80px auto}.ht-1{font-size:1.2rem}.ht-2{font-size:1.1rem}}
