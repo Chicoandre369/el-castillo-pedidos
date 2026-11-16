@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>El Castillo de la Fruta - Pedidos</title>
-<link rel="stylesheet" href="css/styles.css?v=094">
+<link rel="stylesheet" href="css/styles.css?v=095">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
@@ -105,5 +105,45 @@
   <button type="button" class="nav-item" data-nav="clientes" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>👥</span><span style="font-size:11px;">Clientes</span></button>
   <button type="button" class="nav-item" data-nav="productos" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>🥬</span><span style="font-size:11px;">Productos</span></button>
 </nav>
-<script src="js/app.js?v=094"></script>
+<script src="js/app.js?v=095"></script>
+
+<script>
+// v0.9.5 Respaldo de pestañas: funciona aunque el resto de app.js falle
+(function(){
+  function showTabFallback(tab){
+    if(!tab) return;
+    document.querySelectorAll('.tab-page').forEach(function(p){ p.classList.remove('active'); });
+    var page = document.getElementById('tab-'+tab);
+    if(page) page.classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(function(b){
+      var on = b.dataset.nav===tab;
+      b.classList.toggle('active', on);
+      b.style.background = on ? '#F0FDF4' : 'none';
+      b.style.color = on ? '#14532D' : '#9CA3AF';
+    });
+    window.scrollTo(0,0);
+    try{ localStorage.setItem('castillo_tab_activa', tab); }catch(e){}
+  }
+  window.showTabFallback = showTabFallback;
+  // Delegacion: un solo listener, no depende de que app.js haya corrido
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('.nav-item');
+    if(b && b.dataset.nav){
+      // Si app.js ya definio showTab, usalo; si no, usa el respaldo
+      if(typeof window.showTab === 'function'){ try{ window.showTab(b.dataset.nav); return; }catch(err){} }
+      showTabFallback(b.dataset.nav);
+    }
+    var cart = e.target.closest && e.target.closest('#btnCarrito');
+    if(cart){ if(typeof window.showTab==='function'){ try{ window.showTab('pedidos'); return; }catch(err){} } showTabFallback('pedidos'); }
+  });
+  // Al cargar, mostrar la tab guardada o Inicio
+  var saved = 'inicio';
+  try{ saved = localStorage.getItem('castillo_tab_activa') || 'inicio'; }catch(e){}
+  if(['inicio','pedidos','clientes','productos'].indexOf(saved)===-1) saved='inicio';
+  // No pisar si app.js ya lo hizo: solo asegurar que haya UNA activa
+  setTimeout(function(){
+    if(!document.querySelector('.tab-page.active')) showTabFallback(saved);
+  }, 100);
+})();
+</script>
 </body></html>

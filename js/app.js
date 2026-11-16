@@ -41,27 +41,25 @@ function cargarConfig(){
     const val = localStorage.getItem('config_negocio_verduleria');
     if(val) config = Object.assign(config, JSON.parse(val));
   }catch(e){}
-  document.getElementById('negNombre').value = config.nombreNegocio || '';
-  document.getElementById('negInfo').value = config.infoNegocio || '';
-  document.getElementById('pedidosPorHojaSelect').value = config.pedidosPorHoja || 3;
-  if(config.logo){
-    const prev = document.getElementById('logoPreview');
-    prev.src = config.logo; prev.style.display = 'block';
-  }
+  const _nN = document.getElementById('negNombre'); if(_nN) _nN.value = config.nombreNegocio || '';
+  const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
+  const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
+  const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
+  // logo ya manejado arriba con guard (v0.9.5)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
 }
 function actualizarNombreNegocio(){
-  config.nombreNegocio = document.getElementById('negNombre').value.trim();
+  const _a=document.getElementById('negNombre'); if(_a) config.nombreNegocio = _a.value.trim();
   guardarConfig();
 }
 function actualizarInfoNegocio(){
-  config.infoNegocio = document.getElementById('negInfo').value.trim();
+  const _b=document.getElementById('negInfo'); if(_b) config.infoNegocio = _b.value.trim();
   guardarConfig();
 }
 function actualizarPedidosPorHoja(){
-  config.pedidosPorHoja = parseInt(document.getElementById('pedidosPorHojaSelect').value) || 3;
+  const _c=document.getElementById('pedidosPorHojaSelect'); if(_c) config.pedidosPorHoja = parseInt(_c.value) || 3;
   guardarConfig();
   renderPedidosPendientes();
 }
@@ -292,7 +290,9 @@ function exportarBaseDatosCSV(){
 
 function renderCatalogo(){
   const cont = document.getElementById('catalogoLista');
-  document.getElementById('catCount').textContent = catalogo.length;
+  const _cc = document.getElementById('catCount'); if(_cc) _cc.textContent = catalogo.length;
+  const _cc2 = document.getElementById('catCount2'); if(_cc2) _cc2.textContent = catalogo.length;
+  if(!cont) return;
   if(catalogo.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas productos.</p>';
     return;
@@ -1120,7 +1120,7 @@ cargarPedidosPendientes();
 renderPedidosPendientes();
 cargarHistorial();
 cargarVentasLog();
-document.getElementById('reporteFecha').value = fechaLocalISO();
+const _rf = document.getElementById('reporteFecha'); if(_rf) _rf.value = fechaLocalISO();
 renderReporte();
 
 // ================= v0.7.0 - Compartir por WhatsApp =================
@@ -1204,23 +1204,7 @@ function agruparAccionesPrincipales(){
   }
 }
 // Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){
-  const items = document.querySelectorAll('.bottom-nav .nav-item');
-  items.forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      items.forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      const key = btn.dataset.nav;
-      let target = null;
-      if(key==='inicio') target = document.getElementById('textoInput');
-      if(key==='pedidos') target = document.getElementById('pedidosLista') || document.getElementById('revisionWrap');
-      if(key==='estadisticas') target = document.getElementById('reporteDetails') || document.getElementById('reporteResumen');
-      if(key==='config') target = document.getElementById('negocioDetails') || document.getElementById('catalogoDetails');
-      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
-      if(key==='config' && target && target.tagName==='DETAILS') target.open = true;
-    });
-  });
-}
+function initBottomNav(){ return; /* v0.9.5: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
 function actualizarCarrito(){
   const el = document.getElementById('cartCount');
   if(!el) return;
@@ -1231,27 +1215,11 @@ function actualizarCarrito(){
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
 
-// v0.8.1 bottom nav + carrito
-(function(){
-  document.addEventListener('DOMContentLoaded', ()=>{
-    document.querySelectorAll('.nav-item').forEach(b=>{
-      b.addEventListener('click', ()=>{
-        document.querySelectorAll('.nav-item').forEach(x=>{x.classList.remove('active');x.style.background='none';x.style.color='#9CA3AF';});
-        b.classList.add('active'); b.style.background='#F0FDF4'; b.style.color='#14532D';
-        const k=b.dataset.nav; let t=null;
-        if(k==='inicio') t=document.getElementById('textoInput');
-        if(k==='pedidos') t=document.getElementById('pedidosLista');
-        if(k==='estadisticas') t=document.getElementById('reporteFecha');
-        if(k==='config') t=document.getElementById('negocioDetails');
-        if(t){ if(t.tagName==='DETAILS') t.open=true; t.scrollIntoView({behavior:'smooth',block:'start'}); }
-      });
-    });
-    const cart=document.getElementById('btnCarrito'); if(cart) cart.addEventListener('click', ()=>{ document.getElementById('pedidosLista').scrollIntoView({behavior:'smooth'}); });
-  });
-})();
+// v0.8.1 bottom nav DESACTIVADO en v0.9.5 - lo maneja showTab, el viejo solo hacia scroll
+(function(){ return; })();
 
 // ================= v0.9.1 Tabs independientes =================
-function showTab(tab){
+function showTab(tab){ if(!tab) return;
   document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
   const page = document.getElementById('tab-'+tab);
   if(page) page.classList.add('active');
@@ -1289,7 +1257,7 @@ function initTabsV091(){
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v0.9.4 CORREGIDA: productos nuevos + clientes automaticos =================
+// ================= v0.9.5 CORREGIDA: productos nuevos + clientes automaticos =================
 // Negocio fijo - ya no se edita
 const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
 function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
