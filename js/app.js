@@ -1,5 +1,5 @@
 /* El Castillo de la Fruta - v0.2.0 - Logica extraida de index.html original (v0.1.0)
-   Seguridad v0.5.0: CSP estricta sin inline handlers, validacion, allowlist. sin eval, sin document.write, escapeHtml en renders, CSP en index.html.
+   Seguridad v0.5.0 + Fix lectura corrida v0.5.1: CSP estricta sin inline handlers, validacion, allowlist. sin eval, sin document.write, escapeHtml en renders, CSP en index.html.
    Datos: localStorage (pedidos, catalogo, clientes, historial) - no se suben a Git. */
 let catalogo = [];
 let pedidosPendientes = [];
@@ -674,43 +674,50 @@ function resolverItem(productoTexto, cantidad, unidad, cantidadExplicita){
 }
 
 function separarMultiplesProductos(linea){
-  /*
-   * Permite procesar pedidos escritos en una sola línea:
-   * "hola necesito 2 lechugas y 1 kilo de papa"
-   * "tambien 3 tomates y 2 manzanas"
-   *
-   * Se intenta separar por " y " solo cuando después de "y"
-   * aparece una cantidad o un nombre de producto reconocido.
-   */
-  const partes = linea.split(/\s+\by\b\s+/i).map(s => s.trim()).filter(Boolean);
-  if(partes.length <= 1) return [linea];
-
-  const resultados = [];
-  let prefijo = '';
-
-  for(let i = 0; i < partes.length; i++){
-    let parte = partes[i];
-
-    // Elimina saludos/prefijos comunes antes de la primera cantidad.
-    if(i === 0){
-      const pos = parte.search(/\d|[½¼¾⅓⅔⅕⅖⅗⅘]/);
-      if(pos > 0){
-        parte = parte.slice(pos);
-      }
-    }
-
-    const normal = normalizarTexto(parte);
-    const tieneProducto = buscarEnCatalogo(parte) || buscarEnBaseDatos(parte);
-    const tieneCantidad = /\d|[½¼¾⅓⅔⅕⅖⅗⅘]/.test(parte);
-
-    if(tieneProducto || tieneCantidad){
-      resultados.push(parte);
-    } else if(i === 0){
-      prefijo = parte;
+  // v0.5.1: pedidos "hacia el lado" - "2 alcachofas 4 pepinos 2 lechugas"
+  if(/[,;]/.test(linea)){
+    const porComa = linea.split(/[,;]+/).map(s => s.trim()).filter(Boolean);
+    if(porComa.length > 1){
+      let out = [];
+      for(let p of porComa) out.push(...separarMultiplesProductos(p));
+      return out;
     }
   }
-
-  return resultados.length ? resultados : [linea];
+  const partes = linea.split(/\s+\by\b\s+/i).map(s => s.trim()).filter(Boolean);
+  if(partes.length > 1){
+    const resultados = [];
+    for(let i = 0; i < partes.length; i++){
+      let parte = partes[i];
+      if(i === 0){
+        const pos = parte.search(/\d/);
+        if(pos > 0) parte = parte.slice(pos);
+      }
+      const tieneProducto = buscarEnCatalogo(parte) || buscarEnBaseDatos(parte);
+      const tieneCantidad = /\d/.test(parte);
+      if(tieneProducto || tieneCantidad) resultados.push(parte);
+    }
+    if(resultados.length) {
+      let final = [];
+      for(let r of resultados) final.push(...separarPorNumeros(r));
+      return final;
+    }
+    return [linea];
+  }
+  return separarPorNumeros(linea);
+}
+function separarPorNumeros(linea){
+  const t = linea.trim();
+  if(!t) return [linea];
+  const nums = t.match(/\d+(?:[.,]\d+)?/g) || [];
+  if(nums.length < 2) return [linea];
+  let desdeNum = t;
+  const primerNum = t.search(/\d/);
+  if(primerNum > 0) desdeNum = t.slice(primerNum);
+  const trozos = desdeNum.split(/\s+(?=\d+(?:[.,]\d+)?\s)/).map(s => s.trim()).filter(Boolean);
+  if(trozos.length <= 1) return [linea];
+  const todosValidos = trozos.every(tr => buscarEnCatalogo(tr) || buscarEnBaseDatos(tr) || /\d/.test(tr));
+  if(!todosValidos) return [linea];
+  return trozos;
 }
 
 function parsearTexto(texto){
