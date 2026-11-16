@@ -18,7 +18,7 @@ function fechaLocalISO(d){
 }
 
 // ---------- Persistencia del catálogo ----------
-// v1.0.1: catalogo unificado - junta las 3 claves que uso la app en el tiempo
+// v1.0.2: catalogo unificado - junta las 3 claves que uso la app en el tiempo
 // catalogo_verduleria (principal) + castillo_catalogo (Productos) + catalogo (vieja)
 // Sin esto, un producto agregado en Productos no lo veia el parser.
 function leerListaCatalogo(clave){
@@ -64,7 +64,7 @@ function cargarConfig(){
   const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
   const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
   const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
-  // logo ya manejado arriba con guard (v1.0.1)
+  // logo ya manejado arriba con guard (v1.0.2)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
@@ -173,7 +173,7 @@ function abonarDeuda(i){
 function renderClientes(){
   const cont = document.getElementById('clientesLista');
   const _cc = document.getElementById('cliCount'); if(_cc) _cc.textContent = clientes.length;
-  if(!cont) return; // v1.0.1: Clientes manual ya no existe, no tumbar app.js
+  if(!cont) return; // v1.0.2: Clientes manual ya no existe, no tumbar app.js
   if(clientes.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas clientes.</p>';
     return;
@@ -261,7 +261,7 @@ function registrarVenta(pedido){
 }
 function renderReporte(){
   const fechaEl = document.getElementById('reporteFecha');
-  if(!fechaEl) return; // v1.0.1 guard
+  if(!fechaEl) return; // v1.0.2 guard
   const dia = fechaEl.value || fechaLocalISO();
   const ventasDia = ventasLog.filter(v => v.diaISO === dia);
   const totalVendido = ventasDia.reduce((a, v) => a + v.total, 0);
@@ -777,7 +777,7 @@ function parsearTexto(texto){
       if(item){
         items.push(item);
       } else {
-        // v1.0.1: no se pierde - queda para mostrar Usar / Agregar como nuevo
+        // v1.0.2: no se pierde - queda para mostrar Usar / Agregar como nuevo
         const nombreNo = (parsed.producto || '').trim();
         if(nombreNo){
           if(!window._noReconocidosV097) window._noReconocidosV097 = [];
@@ -867,7 +867,7 @@ function agregarPedidoALaHoja(){
     // Actualiza un pedido ya existente en la hoja (no vuelve a registrar venta ni fiado)
     pedidosPendientes[editingIndex].cliente = cliente;
     pedidosPendientes[editingIndex].items = JSON.parse(JSON.stringify(items));
-    // v1.0.1: al editar, guardar tambien el telefono y mantener la fecha original de emision
+    // v1.0.2: al editar, guardar tambien el telefono y mantener la fecha original de emision
     try{ const telEd = document.getElementById('telefonoInput') ? document.getElementById('telefonoInput').value.trim() : ''; if(telEd) pedidosPendientes[editingIndex].telefono = telEd; }catch(e){}
     editingIndex = null;
     document.getElementById('btnCancelarEdicion').style.display = 'none';
@@ -1003,7 +1003,7 @@ function generarWord(){
 }
 
 function construirHtmlHoja(lista){
-  if(!lista || lista.length === 0) return '';
+  if(!lista || lista.length === 0) return null;
   const fechaGen = new Date();
   const fecha = fechaGen.toLocaleDateString('es-CL');
   const horaGen = fechaGen.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
@@ -1102,497 +1102,48 @@ function generarWordDesdeLista(lista){
   URL.revokeObjectURL(url);
   document.getElementById('statusMsg').innerHTML = '<div class="status-msg ok">Documento generado y descargado con logo, fecha por pedido y totales por hoja.</div>';
 }
-// v1.0.1: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
+// v1.0.2: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
 function vistaPreviaHoja(){
-  if(!pedidosPendientes || pedidosPendientes.length === 0){
-    const st = document.getElementById('statusMsg');
-    if(st) st.innerHTML = '<div class="status-msg warn">No hay pedidos en la hoja para previsualizar.</div>';
+  var st = document.getElementById('statusMsg');
+  var box = document.getElementById('vistaPreviaBox');
+  // Diagnostico: cuantos pedidos hay realmente en la hoja
+  var n = (pedidosPendientes && pedidosPendientes.length) ? pedidosPendientes.length : 0;
+  if(!n){
+    if(st) st.innerHTML = '<div class="status-msg warn">No hay pedidos en la hoja para previsualizar. Primero pega un pedido, toca Analizar y Agregar a la hoja. La hoja tiene 0 pedidos ahora.</div>';
+    if(box){ box.style.display='none'; box.innerHTML=''; }
     return;
   }
-  const built = construirHtmlHoja(pedidosPendientes);
-  if(!built || !built.html) return;
-  // Insertar barra de acciones solo para la vista previa (no sale al imprimir)
-  const htmlConBarra = built.html.replace('</body>', `<div class="no-print" style="position:sticky;bottom:0;background:#2F5233;color:#fff;padding:12px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"><button onclick="window.print()" style="background:#fff;color:#2F5233;border:0;border-radius:999px;padding:10px 18px;font-weight:800;cursor:pointer;">🖨️ Imprimir / Guardar como PDF</button><button onclick="window.close()" style="background:transparent;color:#fff;border:1px solid #fff;border-radius:999px;padding:10px 18px;font-weight:700;cursor:pointer;">Cerrar</button></div></body>`);
-  const win = window.open('', '_blank', 'noopener');
-  if(!win){
-    const st2 = document.getElementById('statusMsg');
-    if(st2) st2.innerHTML = '<div class="status-msg warn">El navegador bloqueo la ventana. Permite ventanas emergentes para este sitio y vuelve a tocar Ver hoja.</div>';
+  var built = construirHtmlHoja(pedidosPendientes);
+  if(!built || !built.html){
+    if(st) st.innerHTML = '<div class="status-msg warn">No se pudo armar la hoja. Intenta de nuevo.</div>';
     return;
   }
-  win.document.open();
-  win.document.write(htmlConBarra);
-  win.document.close();
-  const st3 = document.getElementById('statusMsg');
-  if(st3) st3.innerHTML = '<div class="status-msg ok">Vista previa abierta. Ahi ves la hoja tal cual va a salir impresa, sin abrir Word. Si te gusta, toca Imprimir / Guardar como PDF.</div>';
-}
-
-// ================= v0.5.0 SEGURIDAD WEB =================
-// Bug: CSP script-src 'self' bloquea handlers inline (onclick="..."). Por eso Analizar no hacia nada en GitHub Pages y si en Netlify (sin CSP).
-// Fix: 0 handlers inline, todo con addEventListener + delegacion. Permite CSP estricta sin unsafe-inline en scripts (OWASP).
-function sanitizarTexto(v, maxLen){
-  if(typeof v !== 'string') return '';
-  return v.trim().slice(0, maxLen || 200);
-}
-function validarNumero(v, min, max){
-  const n = parseFloat(v);
-  if(!Number.isFinite(n)) return 0;
-  if(min !== undefined && n < min) return min;
-  if(max !== undefined && n > max) return max;
-  return n;
-}
-function validarArchivoLogo(file){
-  if(!file) return {ok:false, msg:'Sin archivo'};
-  if(!file.type || !file.type.startsWith('image/')) return {ok:false, msg:'El logo debe ser una imagen'};
-  if(file.size > 2*1024*1024) return {ok:false, msg:'El logo debe pesar menos de 2MB'};
-  return {ok:true};
-}
-document.addEventListener('click', function(e){
-  const btn = e.target.closest('[data-action]');
-  if(!btn) return;
-  const action = btn.getAttribute('data-action');
-  const idx = parseInt(btn.getAttribute('data-index'), 10);
-  if(!Number.isFinite(idx)) return;
-  const acciones = { abonarDeuda, eliminarCliente, reimprimirHistorial, eliminarHistorial, eliminarProductoCatalogo, quitarItemRevision, editarPedidoPendiente, eliminarPedidoPendiente, enviarWhatsAppPedido };
-  const fn = acciones[action];
-  if(typeof fn === 'function') fn(idx);
-});
-document.addEventListener('change', function(e){
-  const el = e.target;
-  if(!el || !el.getAttribute('data-item-input')) return;
-  const idx = parseInt(el.getAttribute('data-index'), 10);
-  const field = el.getAttribute('data-field');
-  if(!Number.isFinite(idx) || !itemsEnRevision[idx]) return;
-  if(field === 'producto') itemsEnRevision[idx].producto = sanitizarTexto(el.value, 120);
-  if(field === 'cantidad') itemsEnRevision[idx].cantidad = validarNumero(el.value, 0, 10000);
-  if(field === 'unidad'){ const permitidas = ['kg','g','unidad']; if(permitidas.includes(el.value)) itemsEnRevision[idx].unidad = el.value; }
-  if(field === 'precio') itemsEnRevision[idx].precio = validarNumero(el.value, 0, 10000000);
-  if(typeof actualizarTotalesPreview === 'function') actualizarTotalesPreview();
-});
-document.addEventListener('input', function(e){
-  const el = e.target;
-  if(el && el.id === 'catBuscar' && typeof renderCatalogo === 'function') renderCatalogo();
-});
-function cablearEventosEstaticos(){
-  const mapa = [
-    ['btnQuitarLogo','click', function(){ if(typeof quitarLogo==='function') quitarLogo(); }],
-    ['btnAgregarProductoCatalogo','click', function(){ if(typeof agregarProductoCatalogo==='function') agregarProductoCatalogo(); }],
-    ['btnExportarCatalogoCSV','click', function(){ if(typeof exportarCatalogoCSV==='function') exportarCatalogoCSV(); }],
-    ['btnExportarBaseDatosCSV','click', function(){ if(typeof exportarBaseDatosCSV==='function') exportarBaseDatosCSV(); }],
-    ['btnAgregarCliente','click', function(){ if(typeof agregarCliente==='function') agregarCliente(); }],
-    ['btnAnalizarPedido','click', function(){ if(typeof analizarPedido==='function') analizarPedido(); }],
-    ['btnAgregarLineaManual','click', function(){ if(typeof agregarLineaManual==='function') agregarLineaManual(); }],
-    ['btnAgregarPedidoALaHoja','click', function(){ if(typeof agregarPedidoALaHoja==='function') agregarPedidoALaHoja(); }],
-    ['btnCancelarEdicion','click', function(){ if(typeof cancelarEdicion==='function') cancelarEdicion(); }],
-    ['btnGenerar','click', function(){ if(typeof generarWord==='function') generarWord(); }],
-    ['btnVistaPrevia','click', function(){ if(typeof vistaPreviaHoja==='function') vistaPreviaHoja(); }],
-    ['btnVaciarHoja','click', function(){ if(typeof vaciarHoja==='function') vaciarHoja(); }],
-    ['negNombre','change', function(){ if(typeof actualizarNombreNegocio==='function') actualizarNombreNegocio(); }],
-    ['negInfo','change', function(){ if(typeof actualizarInfoNegocio==='function') actualizarInfoNegocio(); }],
-    ['pedidosPorHojaSelect','change', function(){ if(typeof actualizarPedidosPorHoja==='function') actualizarPedidosPorHoja(); }],
-    ['reporteFecha','change', function(){ if(typeof renderReporte==='function') renderReporte(); }],
-  ];
-  mapa.forEach(function(item){
-    const el = document.getElementById(item[0]);
-    if(el) el.addEventListener(item[1], item[2]);
-  });
-  const logoInput = document.getElementById('negLogo');
-  if(logoInput){
-    logoInput.addEventListener('change', function(){
-      const f = logoInput.files && logoInput.files[0];
-      const v = validarArchivoLogo(f);
-      if(!v.ok){ alert(v.msg); logoInput.value=''; return; }
-      if(typeof cargarLogo==='function') cargarLogo(logoInput);
-    });
-  }
-}
-// ================= FIN v0.5.0 =================
-// init v1.0.1: cada paso en try/catch, un render fallido no tumba el resto
-try{ cablearEventosEstaticos(); }catch(e){ console.error('init cablear', e); }
-try{ cargarConfig(); }catch(e){ console.error('init cargarConfig', e); }
-try{ cargarCatalogo(); }catch(e){ console.error('init cargarCatalogo', e); }
-try{ cargarClientes(); }catch(e){ console.error('init cargarClientes', e); }
-try{ cargarPedidosPendientes(); }catch(e){ console.error('init cargarPedidos', e); }
-try{ renderPedidosPendientes(); }catch(e){ console.error('init renderPedidos', e); }
-try{ cargarHistorial(); }catch(e){ console.error('init cargarHistorial', e); }
-try{ cargarVentasLog(); }catch(e){ console.error('init cargarVentas', e); }
-const _rf = document.getElementById('reporteFecha'); if(_rf) _rf.value = fechaLocalISO();
-try{ renderReporte(); }catch(e){ console.error('init renderReporte', e); }
-
-// ================= v0.7.0 - Compartir por WhatsApp =================
-// Flujo local: 1) llega pedido a WhatsApp 2) copiar 3) pegar en app anclada 4) Analizar
-// 5) pesar y poner valor 6) Generar Word para imprimir y corchetear en la caja
-// 7) NUEVO: Compartir por WhatsApp - genera texto listo para enviar al cliente:
-// "Hola {cliente}, tu pedido en El Castillo: - 2 kg Tomate $... Total $... Revisa tu hoja impresa en la caja. Gracias!"
-// v1.0.1: WhatsApp al cliente desde la hoja
-function normalizarTelefonoChile(tel){
-  if(!tel) return '';
-  let t = String(tel).replace(/[^0-9+]/g,'');
-  if(t.startsWith('+')) t = t.slice(1);
-  if(t.startsWith('56') && t.length === 11) return t;
-  if(t.length === 9 && t.startsWith('9')) return '56' + t;
-  if(t.length === 8) return '569' + t;
-  return t;
-}
-function obtenerTelefonoCliente(nombreCliente){
-  // 1) ultimo pedido con ese cliente que tenga telefono
+  // Barra de acciones para la vista previa (no sale al imprimir)
+  var htmlConBarra = built.html.replace('</body>', '<div class="no-print" style="position:sticky;bottom:0;background:#2F5233;color:#fff;padding:12px;text-align:center;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;"><button onclick="window.print()" style="background:#fff;color:#2F5233;border:0;border-radius:999px;padding:10px 18px;font-weight:800;cursor:pointer;">🖨️ Imprimir / Guardar como PDF</button></div></body>');
+  // v1.0.2 FIX iPhone: NO usar window.open + document.write (Safari lo deja en about:blank en blanco).
+  // Usar Blob URL, que Safari si abre. Si igual lo bloquea, mostrar la hoja DENTRO de la app.
+  var mostrado = false;
   try{
-    for(let i = pedidosPendientes.length - 1; i >= 0; i--){ const p = pedidosPendientes[i]; if(p && normTxt(p.cliente) === normTxt(nombreCliente) && p.telefono) return normalizarTelefonoChile(p.telefono); }
-  }catch(e){}
-  // 2) campo actual
-  try{ const v = document.getElementById('telefonoInput') ? document.getElementById('telefonoInput').value.trim() : ''; if(v) return normalizarTelefonoChile(v); }catch(e){}
-  // 3) clientes guardados
-  try{
-    const c = (clientes || []).find(function(x){ return normTxt(x.nombre) === normTxt(nombreCliente); });
-    if(c && c.telefono) return normalizarTelefonoChile(c.telefono);
-  }catch(e){}
-  return '';
-}
-function construirMensajeWhatsAppHoja(){
-  if(!pedidosPendientes || !pedidosPendientes.length) return null;
-  let partes = [];
-  let granTotal = 0;
-  pedidosPendientes.forEach(function(p){
-    const lineas = (p.items || []).map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
-    const tot = (p.items || []).reduce(function(a,it){ return a + (it.precio || 0); }, 0);
-    granTotal += tot;
-    partes.push('Pedido de ' + p.cliente + (p.fiado ? ' (FIADO)' : '') + ':\n' + lineas.join('\n') + '\nTotal: $' + Math.round(tot).toLocaleString('es-CL'));
-  });
-  return 'Hola, tu pedido en El Castillo de la Fruta:\n\n' + partes.join('\n\n') + '\n\nTotal hoja: $' + Math.round(granTotal).toLocaleString('es-CL') + '\nRevisa tu hoja impresa que va corcheteada en tu caja. \u00a1Gracias!';
-}
-function construirMensajeWhatsApp(){
-  const items = itemsEnRevision.filter(function(it){ return it.producto && it.producto.trim() !== ''; });
-  if(items.length){
-    const cliente = (document.getElementById('clienteInput').value || '').trim() || 'Cliente';
-    const lineas = items.map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
-    const total = items.reduce(function(a,it){ return a + (it.precio || 0); }, 0);
-    const totalKg = items.filter(function(it){ return it.unidad==='kg'; }).reduce(function(a,it){ return a + it.cantidad; }, 0);
-    const totalUn = items.filter(function(it){ return it.unidad==='unidad'; }).reduce(function(a,it){ return a + it.cantidad; }, 0);
-    let msg = 'Hola ' + cliente + ', tu pedido en El Castillo de la Fruta:\n' + lineas.join('\n') + '\n';
-    if(totalKg>0) msg += 'Total kilos: ' + totalKg + ' kg\n';
-    if(totalUn>0) msg += 'Total unidades: ' + totalUn + '\n';
-    msg += 'Total: $' + Math.round(total).toLocaleString('es-CL') + '\nRevisa tu hoja impresa que va corcheteada en tu caja. \u00a1Gracias!';
-    return { msg: msg, telefono: obtenerTelefonoCliente(cliente) };
-  }
-  // Si ya esta en la hoja, usar la hoja (antes devolvia null y el boton no hacia nada)
-  const msgHoja = construirMensajeWhatsAppHoja();
-  if(msgHoja){
-    const distintos = [];
-    try{ pedidosPendientes.forEach(function(x){ const k = normTxt(x.cliente); if(distintos.indexOf(k) === -1) distintos.push(k); }); }catch(e){}
-    if(distintos.length > 1){
-      const st2 = document.getElementById('statusMsg');
-      if(st2) st2.innerHTML = '<div class="status-msg warn">La hoja tiene ' + distintos.length + ' clientes distintos. Usa el boton verde de cada pedido para enviarle solo su pedido a cada uno.</div>';
-      return { msg: msgHoja, telefono: '', esHoja: true };
+    var blob = new Blob(['\ufeff', htmlConBarra], {type: 'text/html;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var win = window.open(url, '_blank', 'noopener');
+    if(win && !win.closed){ mostrado = true; setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 60000); }
+    else { try{ URL.revokeObjectURL(url); }catch(e){} }
+  }catch(e){ mostrado = false; }
+  if(!mostrado){
+    // Fallback: mostrar dentro de la misma pagina, en el cuadro verde abajo de los botones
+    if(box){
+      box.style.display = 'block';
+      box.innerHTML = '<div style="background:#2F5233;color:#fff;padding:10px 12px;font-weight:800;display:flex;justify-content:space-between;align-items:center;"><span>👀 Vista previa - ' + n + ' pedido(s) en la hoja</span><button id="btnCerrarVista" style="background:#fff;color:#2F5233;border:0;border-radius:999px;padding:6px 12px;font-weight:800;cursor:pointer;">Cerrar ✕</button></div><div style="max-height:70vh;overflow:auto;padding:10px;">' + built.html + '</div>';
+      var btnCerrar = document.getElementById('btnCerrarVista');
+      if(btnCerrar) btnCerrar.addEventListener('click', function(){ box.style.display='none'; box.innerHTML=''; });
+      box.scrollIntoView({behavior:'smooth', block:'start'});
     }
-    const primer = pedidosPendientes[0] ? pedidosPendientes[0].cliente : '';
-    return { msg: msgHoja, telefono: obtenerTelefonoCliente(primer), esHoja: true };
+  } else {
+    if(box){ box.style.display='none'; box.innerHTML=''; }
   }
-  return null;
+  if(st) st.innerHTML = '<div class="status-msg ok">Vista previa abierta con ' + n + ' pedido(s). Si ves la hoja en blanco, baja en esta misma pantalla: quedo pegada abajo de los botones, en el cuadro verde.</div>';
 }
-// v1.0.1: enviar SOLO un pedido a SU cliente
-function construirMensajeWhatsAppPedido(p){
-  if(!p) return null;
-  const lineas = (p.items || []).map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
-  const tot = (p.items || []).reduce(function(a,it){ return a + (it.precio || 0); }, 0);
-  const totalKg = (p.items || []).filter(function(it){ return it.unidad==='kg'; }).reduce(function(a,it){ return a + it.cantidad; }, 0);
-  const totalUn = (p.items || []).filter(function(it){ return it.unidad==='unidad'; }).reduce(function(a,it){ return a + it.cantidad; }, 0);
-  let msg = 'Hola ' + p.cliente + ', tu pedido en El Castillo de la Fruta:\n' + lineas.join('\n') + '\n';
-  if(totalKg>0) msg += 'Total kilos: ' + totalKg + ' kg\n';
-  if(totalUn>0) msg += 'Total unidades: ' + totalUn + '\n';
-  msg += 'Total: $' + Math.round(tot).toLocaleString('es-CL') + (p.fiado ? ' (FIADO)' : '') + '\nRevisa tu hoja impresa que va corcheteada en tu caja. \u00a1Gracias!';
-  return msg;
-}
-function enviarWhatsAppPedido(i){
-  const p = pedidosPendientes[i];
-  const statusEl = document.getElementById('statusMsg');
-  if(!p){ if(statusEl) statusEl.innerHTML = '<div class="status-msg warn">Ese pedido ya no esta en la hoja.</div>'; return; }
-  const msg = construirMensajeWhatsAppPedido(p);
-  let tel = '';
-  try{ if(p.telefono) tel = normalizarTelefonoChile(p.telefono); }catch(e){}
-  if(!tel) tel = obtenerTelefonoCliente(p.cliente);
-  const url = tel ? 'https://wa.me/' + tel + '?text=' + encodeURIComponent(msg) : 'https://wa.me/?text=' + encodeURIComponent(msg);
-  window.open(url, '_blank', 'noopener');
-  if(statusEl) statusEl.innerHTML = '<div class="status-msg ok">' + (tel ? 'Abriendo WhatsApp de ' + escapeHtml(p.cliente) + ' (' + tel + '). ' : 'Abriendo WhatsApp. Elige a ' + escapeHtml(p.cliente) + ' porque ese pedido no tiene telefono guardado. ') + 'Se envio solo su pedido, no toda la hoja.</div>';
-}
-function compartirPorWhatsApp(){
-  const res = construirMensajeWhatsApp();
-  const statusEl = document.getElementById('statusMsg');
-  if(!res){
-    if(statusEl) statusEl.innerHTML = '<div class="status-msg warn">Primero analiza el pedido y agrega productos para compartir.</div>';
-    return;
-  }
-  const url = res.telefono ? 'https://wa.me/' + res.telefono + '?text=' + encodeURIComponent(res.msg) : 'https://wa.me/?text=' + encodeURIComponent(res.msg);
-  window.open(url, '_blank', 'noopener');
-  if(statusEl) statusEl.innerHTML = '<div class="status-msg ok">' + (res.telefono ? 'Abriendo WhatsApp al cliente ' + res.telefono + '. ' : 'Mensaje listo para WhatsApp. Elige al cliente y env\u00edalo. ') + 'La hoja Word sigue lista para imprimir.</div>';
-}
-// Cablear boton WhatsApp (seguro, sin inline)
-document.addEventListener('DOMContentLoaded', function(){
-  const b = document.getElementById('btnCompartirWhatsApp');
-  if(b) b.addEventListener('click', compartirPorWhatsApp);
-});
-// Fallback si DOMContentLoaded ya paso
-(function(){
-  const b = document.getElementById('btnCompartirWhatsApp');
-  if(b && !b.dataset.cableado){ b.dataset.cableado='1'; b.addEventListener('click', compartirPorWhatsApp); }
-})();
-
-// ================= v0.8.0 - Clean UI: emoji, badges, bottom nav, carrito =================
-function emojiParaProducto(nombre){
-  const n = (nombre||'').toLowerCase();
-  if(n.includes('pepino')) return '🥒';
-  if(n.includes('tomate')) return '🍅';
-  if(n.includes('zanahoria')) return '🥕';
-  if(n.includes('lechuga')) return '🥬';
-  if(n.includes('palta')||n.includes('aguacate')) return '🥑';
-  if(n.includes('manzana')) return '🍎';
-  if(n.includes('naranja')) return '🍊';
-  if(n.includes('plátano')||n.includes('platano')||n.includes('banana')) return '🍌';
-  if(n.includes('pera')) return '🍐';
-  if(n.includes('uva')) return '🍇';
-  if(n.includes('frutilla')||n.includes('fresa')) return '🍓';
-  if(n.includes('limón')||n.includes('limon')) return '🍋';
-  if(n.includes('cebolla')) return '🧅';
-  if(n.includes('papa')||n.includes('patata')) return '🥔';
-  if(n.includes('huevo')) return '🥚';
-  if(n.includes('pimiento')||n.includes('piment')) return '🫑';
-  if(n.includes('zapallo')||n.includes('calabaza')) return '🎃';
-  if(n.includes('sandía')||n.includes('sandia')) return '🍉';
-  if(n.includes('melón')||n.includes('melon')) return '🍈';
-  if(n.includes('kiwi')) return '🥝';
-  if(n.includes('choclo')||n.includes('maíz')||n.includes('maiz')) return '🌽';
-  return '🥦';
-}
-// Envolver botones principales en flex cuando existen
-function agruparAccionesPrincipales(){
-  const wa = document.getElementById('btnCompartirWhatsApp');
-  const word = document.getElementById('btnGenerar');
-  if(wa && word && !wa.parentElement.classList.contains('acciones-principales')){
-    const wrap = document.createElement('div');
-    wrap.className = 'acciones-principales';
-    wa.parentNode.insertBefore(wrap, wa);
-    wrap.appendChild(wa); wrap.appendChild(word);
-    wa.textContent = '💬 Enviar toda la hoja';
-    word.textContent = '📄 Generar Word';
-  }
-}
-// Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){ return; /* v1.0.1: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
-function actualizarCarrito(){
-  const el = document.getElementById('cartCount');
-  if(!el) return;
-  const n = (typeof pedidosPendientes !== 'undefined' ? pedidosPendientes.length : 0) + (typeof itemsEnRevision !== 'undefined' && itemsEnRevision.length>0 ? 1 : 0);
-  el.textContent = Math.max(n, 0);
-  el.style.display = n===0 ? 'none' : 'flex';
-}
-document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
-setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
-
-// v0.8.1 bottom nav DESACTIVADO en v1.0.1 - lo maneja showTab, el viejo solo hacia scroll
-(function(){ return; })();
-
-// ================= v0.9.1 Tabs independientes =================
-function showTab(tab){ if(!tab) return;
-  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
-  const page = document.getElementById('tab-'+tab);
-  if(page) page.classList.add('active');
-  document.querySelectorAll('.nav-item').forEach(b=>{
-    const isActive = b.dataset.nav===tab;
-    b.classList.toggle('active', isActive);
-    b.style.background = isActive ? '#F0FDF4' : 'none';
-    b.style.color = isActive ? '#14532D' : '#9CA3AF';
-  });
-  window.scrollTo({top:0, behavior:'instant'});
-  try{ localStorage.setItem('castillo_tab_activa', tab); }catch(e){}
-  if(tab==='clientes'){ if(typeof renderReporte==='function') renderReporte(); if(typeof renderClientesAutomaticos==='function') renderClientesAutomaticos(); }
-  if(tab==='productos' && typeof renderListaProductosConfig==='function') renderListaProductosConfig();
-  if(tab==='pedidos' && typeof renderPedidosPendientes==='function') renderPedidosPendientes();
-}
-function initTabsV091(){
-  document.querySelectorAll('.nav-item').forEach(b=>{
-    b.addEventListener('click', ()=> showTab(b.dataset.nav));
-  });
-  const cart = document.getElementById('btnCarrito');
-  if(cart) cart.addEventListener('click', ()=> showTab('pedidos'));
-  // Flujo: al agregar a la hoja, saltar a Pedidos
-  const btnAdd = document.getElementById('btnAgregarPedidoALaHoja');
-  if(btnAdd) btnAdd.addEventListener('click', ()=> setTimeout(()=> showTab('pedidos'), 250));
-  // Al editar, volver a Inicio
-  document.addEventListener('click', (e)=>{
-    const btn = e.target.closest('[data-action="editarPedidoPendiente"]');
-    if(btn) setTimeout(()=> showTab('inicio'), 100);
-  });
-  // Tab guardada o Inicio por defecto
-  let saved = 'inicio';
-  try{ saved = localStorage.getItem('castillo_tab_activa') || 'inicio'; }catch(e){}
-  if(!['inicio','pedidos','clientes','productos'].includes(saved)) saved='inicio';
-  showTab(saved);
-}
-document.addEventListener('DOMContentLoaded', initTabsV091);
-
-// ================= v1.0.1 CORREGIDA: productos nuevos + clientes automaticos =================
-// Negocio fijo - ya no se edita
-const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
-function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
-function lev(a,b){ const m=a.length,n=b.length; if(!m) return n; if(!n) return m; const d=Array.from({length:m+1},(_,i)=>[i]); for(let j=1;j<=n;j++) d[0][j]=j; for(let i=1;i<=m;i++){ for(let j=1;j<=n;j++){ d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); } } return d[m][n]; }
-function buscarProductoParecido(nombreMal){
-  const n = normTxt(nombreMal);
-  if(!n) return null;
-  let catalogo = [];
-  try{ catalogo = obtenerCatalogoUnificado(); }catch(e){ try{ catalogo = JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e2){} }
-  // 1) alias exacto
-  for(const p of catalogo){ const alias = (p.alias||'').split(',').map(normTxt); if(alias.includes(n)) return {producto:p, tipo:'alias'}; }
-  // 2) parecido por distancia (tolera 1-2 letras mal escritas: tomte -> tomate, savahoria -> zanahoria)
-  let mejor=null, mejorDist=99;
-  for(const p of catalogo){ const d = lev(n, normTxt(p.nombre||p.name||'')); if(d<mejorDist){ mejorDist=d; mejor=p; } }
-  const umbral = n.length<=4 ? 1 : 2;
-  if(mejor && mejorDist<=umbral) return {producto:mejor, tipo:'parecido', dist:mejorDist};
-  return null;
-}
-window.buscarProductoParecido = buscarProductoParecido;
-// Mostrar aviso cuando un producto del pedido no se reconocio
-function mostrarProductosNoReconocidos(noReconocidos){
-  const wrap = document.getElementById('revisionWrap');
-  if(!wrap || !noReconocidos || !noReconocidos.length) return;
-  const items = noReconocidos.map(function(it){
-    const n = typeof it === 'string' ? it : (it.nombre || '');
-    const cant = (typeof it === 'object' && it.cantidad) ? it.cantidad : 1;
-    const uni = (typeof it === 'object' && it.unidad) ? it.unidad : '';
-    const sug = buscarProductoParecido(n);
-    const nombreSug = sug ? (sug.producto.nombre || sug.producto.name || '') : '';
-    const btnSug = sug ? '<button type="button" data-corregir-a="' + escapeHtml(nombreSug) + '" data-corregir-de="' + escapeHtml(n) + '" style="margin-left:6px;padding:6px 10px;border:none;border-radius:999px;background:#14532D;color:#fff;font-weight:700;font-size:12px;">Usar ' + escapeHtml(nombreSug) + '</button>' : '';
-    return '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #F3F4F6;"><span>\u26a0\ufe0f <b>' + escapeHtml(n) + '</b> (' + escapeHtml(String(cant)) + ' ' + escapeHtml(uni || 'unidad') + ') no est\u00e1 en la lista.</span>' + btnSug + '<button type="button" data-agregar-nuevo="' + escapeHtml(n) + '" data-cantidad="' + escapeHtml(String(cant)) + '" data-unidad="' + escapeHtml(uni || 'kg') + '" style="padding:6px 10px;border:1px solid #14532D;border-radius:999px;background:#fff;color:#14532D;font-weight:700;font-size:12px;">\uff0b Agregar como nuevo</button></div>';
-  }).join('');
-  const div = document.createElement('div');
-  div.id='avisoNoReconocidos';
-  div.style.cssText='background:#FFFBEB;border:1px solid #FDE68A;border-radius:14px;padding:12px;margin:10px 0;';
-  div.innerHTML = '<b>\u00bfEl cliente escribi\u00f3 mal un producto?</b><p style="margin:4px 0 8px;color:#6B7280;font-size:13px;">No se perdi\u00f3. Elige corregirlo o agr\u00e9galo como producto nuevo y la pr\u00f3xima vez ya lo va a reconocer.</p>' + items;
-  const old = document.getElementById('avisoNoReconocidos'); if(old) old.remove();
-  wrap.prepend(div);
-  div.querySelectorAll('[data-agregar-nuevo]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.1: crea el producto altiro y re-analiza, sin perder cantidad/unidad
-    const nombre = b.dataset.agregarNuevo; const cant = parseFloat(b.dataset.cantidad || '1') || 1; const uni = b.dataset.unidad || 'kg';
-    try{
-      const lista = obtenerCatalogoUnificado();
-      if(!lista.some(function(p){ return normTxt(p.nombre||p.name) === normTxt(nombre); })){
-        lista.push({ nombre: nombre, name: nombre, unidad: uni, precio: 0, alias: nombre });
-        guardarCatalogoUnificado(lista);
-      }
-    }catch(e){}
-    const ta = document.getElementById('textoInput');
-    if(ta){ const btn = document.getElementById('btnAnalizarPedido'); if(btn) btn.click(); }
-    const st = document.getElementById('statusMsg'); if(st) st.innerHTML = '<div class="status-msg ok">\u2705 ' + escapeHtml(nombre) + ' agregado. Ya aparece en la revisi\u00f3n.</div>';
-  }); });
-  div.querySelectorAll('[data-corregir-a]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.1 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
-    const ta = document.getElementById('textoInput');
-    if(ta){ ta.value = ta.value.split(b.dataset.corregirDe).join(b.dataset.corregirA); const btn = document.getElementById('btnAnalizarPedido'); if(btn) btn.click(); }
-  }); });
-}
-window.mostrarProductosNoReconocidos = mostrarProductosNoReconocidos;
-// --- Agregar producto nuevo ---
-function initAgregarProductoNuevo(){
-  const btn = document.getElementById('btnAgregarProductoNuevo'); if(!btn) return;
-  const unidadSel = document.getElementById('nuevoProdUnidad');
-  if(unidadSel) unidadSel.addEventListener('change', ()=>{ document.getElementById('nuevoProdUnidadLabel').textContent = unidadSel.value; });
-  btn.addEventListener('click', ()=>{
-    const nombre = (document.getElementById('nuevoProdNombre').value||'').trim();
-    const unidad = unidadSel.value||'kg';
-    const precio = parseFloat(document.getElementById('nuevoProdPrecio').value||'0')||0;
-    const alias = (document.getElementById('nuevoProdAlias').value||'').trim();
-    const msg = document.getElementById('msgNuevoProducto');
-    if(!nombre){ msg.textContent='Escribe el nombre del producto.'; msg.style.color='#B91C1C'; return; }
-    let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
-    if(cat.some(p=> normTxt(p.nombre||p.name)==normTxt(nombre))){ msg.textContent='Ese producto ya está en la lista.'; msg.style.color='#B91C1C'; return; }
-    cat.push({ nombre, name:nombre, unidad, precio, alias });
-    // v1.0.1: guardar en las 3 claves + memoria para que el parser lo vea altiro
-    try{ guardarCatalogoUnificado(cat); }catch(e){ localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); try{ localStorage.setItem('catalogo', JSON.stringify(cat)); }catch(e2){} }
-    msg.textContent = `✅ ${nombre} agregado. Ya lo puedes usar en el próximo pedido.`; msg.style.color='#14532D';
-    document.getElementById('nuevoProdNombre').value=''; document.getElementById('nuevoProdPrecio').value=''; document.getElementById('nuevoProdAlias').value='';
-    renderListaProductosConfig();
-    if(typeof renderCatalogo==='function') renderCatalogo();
-  });
-  const busc = document.getElementById('buscarProductoNuevo');
-  if(busc) busc.addEventListener('input', renderListaProductosConfig);
-}
-function renderListaProductosConfig(){
-  const cont = document.getElementById('listaProductosConfig'); if(!cont) return;
-  let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
-  const q = normTxt(document.getElementById('buscarProductoNuevo')?.value||'');
-  const filtrados = q ? cat.filter(p=> normTxt(p.nombre||p.name).includes(q)) : cat;
-  const c2 = document.getElementById('catCount2'); if(c2) c2.textContent = cat.length;
-  const cOld = document.getElementById('catCount'); if(cOld) cOld.textContent = cat.length;
-  if(!filtrados.length){ cont.innerHTML='<p style="color:#6B7280;font-size:13px;">Sin productos con ese nombre. Agrégalo arriba.</p>'; return; }
-  cont.innerHTML = filtrados.slice(-50).reverse().map(p=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;"><span><b>${p.nombre||p.name}</b> <span style="color:#6B7280;">· ${p.unidad||'kg'}</span></span><b>$${(p.precio||0).toLocaleString('es-CL')}</b></div>`).join('');
-}
-// --- Clientes automaticos desde pedidos ---
-function obtenerClientesAutomaticos(){
-  // Fuente 1: pedidos pendientes + historial guardado
-  let pedidos=[];
-  try{ pedidos = JSON.parse(localStorage.getItem('castillo_pedidos')||localStorage.getItem('pedidosPendientes')||'[]'); }catch(e){}
-  try{ const hist = JSON.parse(localStorage.getItem('castillo_historial')||'[]'); if(Array.isArray(hist)) pedidos = pedidos.concat(hist); }catch(e){}
-  // Fuente 2: si la app guarda clientes viejos, los mezcla sin duplicar
-  let viejos=[]; try{ viejos = JSON.parse(localStorage.getItem('castillo_clientes')||'[]'); }catch(e){}
-  const mapa = new Map();
-  const agregar = (nombre, info)=>{
-    if(!nombre) return; const key = normTxt(nombre);
-    if(!mapa.has(key)) mapa.set(key, { nombre: nombre.trim(), pedidos:0, total:0, productos:{}, localidad:'', telefono:'', correo:'', ultima:'', semanas:new Set() });
-    const c = mapa.get(key); c.pedidos++; c.total += (info.total||0);
-    (info.productos||[]).forEach(pr=>{ const k=pr.nombre||pr.name||pr; c.productos[k]=(c.productos[k]||0)+(pr.kg||pr.cantidad||1); });
-    if(info.localidad) c.localidad=info.localidad; if(info.telefono) c.telefono=info.telefono; if(info.correo) c.correo=info.correo;
-    if(info.fecha){ c.ultima=info.fecha; const d=new Date(info.fecha); const lunes=new Date(d); lunes.setDate(d.getDate()-((d.getDay()+6)%7)); c.semanas.add(lunes.toISOString().slice(0,10)); }
-  };
-  pedidos.forEach(p=> agregar(p.cliente||p.nombre||p.clienteNombre, { total:p.total||p.monto||0, productos:p.productos||p.items||[], localidad:p.localidad||p.direccion||p.direc, telefono:p.telefono||p.fono, correo:p.correo||p.email, fecha:p.fecha||p.createdAt }));
-  viejos.forEach(v=> agregar(v.nombre||v.name, { localidad:v.localidad||v.direccion, telefono:v.telefono||v.fono, correo:v.correo||v.email }));
-  return [...mapa.values()].sort((a,b)=> b.pedidos - a.pedidos);
-}
-function renderClientesAutomaticos(){
-  const cont = document.getElementById('listaClientesAuto'); if(!cont) return;
-  let lista = obtenerClientesAutomaticos();
-  const q = normTxt(document.getElementById('buscarCliente')?.value||'');
-  if(q) lista = lista.filter(c=> normTxt(c.nombre).includes(q) || normTxt(c.localidad).includes(q));
-  const filtro = document.querySelector('.chip-semana.activo')?.dataset.filtroSemana || 'todas';
-  if(filtro!=='todas'){
-    const hoy=new Date(); const lunes=new Date(hoy); lunes.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
-    const semanaEsta = lunes.toISOString().slice(0,10);
-    const lunesAnt = new Date(lunes); lunesAnt.setDate(lunes.getDate()-7); const semanaAnt = lunesAnt.toISOString().slice(0,10);
-    lista = lista.filter(c=> c.semanas.has(filtro==='esta'? semanaEsta : semanaAnt));
-  }
-  const msg = document.getElementById('msgClientesAuto');
-  if(!lista.length){ cont.innerHTML=''; if(msg) msg.textContent = 'Aún no hay clientes. Pega un pedido en Inicio y acá va a aparecer solo.'; return; }
-  if(msg) msg.textContent = `${lista.length} cliente(s) · Ordenados por los que más piden`;
-  cont.innerHTML = lista.map(c=>{
-    const top = Object.entries(c.productos).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,k])=> `${n} (${k} kg)`).join(' · ') || 'Sin detalle de productos todavía';
-    const contacto = [c.localidad, c.telefono, c.correo].filter(Boolean).join(' · ');
-    return `<article style="background:#fff;border:1px solid #E8EDE9;border-radius:16px;padding:14px;margin-bottom:10px;">
-      <div style="display:flex;justify-content:space-between;gap:8px;"><b style="font-size:16px;">${c.nombre}</b><span style="background:#F0FDF4;color:#14532D;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap;">${c.pedidos} pedido(s)</span></div>
-      ${contacto? `<p style="margin:6px 0 0;color:#4B5563;font-size:13px;">${contacto}</p>` : `<p style="margin:6px 0 0;color:#9CA3AF;font-size:13px;">Sin localidad / teléfono todavía — agrégalo cuando lo tengas</p>`}
-      <p style="margin:8px 0 0;font-size:13px;"><span style="color:#6B7280;">Siempre lleva:</span> <b>${top}</b></p>
-      <p style="margin:4px 0 0;font-size:13px;color:#6B7280;">Total: <b style="color:#111;">$${c.total.toLocaleString('es-CL')}</b> · Último: ${c.ultima? new Date(c.ultima).toLocaleDateString('es-CL') : '—'}</p>
-      <button data-pedido-cliente="${c.nombre.replace(/"/g,'')}" style="margin-top:10px;padding:8px 14px;border:1px solid #E5E7EB;border-radius:999px;background:#fff;font-weight:700;font-size:13px;">＋ Nuevo pedido para ${c.nombre.split(' ')[0]}</button>
-    </article>`;
-  }).join('');
-  cont.querySelectorAll('[data-pedido-cliente]').forEach(b=> b.addEventListener('click', ()=>{
-    const input = document.getElementById('clienteNombre') || document.querySelector('input[placeholder*="cliente" i]');
-    if(input) input.value = b.dataset.pedidoCliente;
-    showTab('inicio');
-  }));
-}
-function initClientesAutomaticos(){
-  const busc = document.getElementById('buscarCliente'); if(busc) busc.addEventListener('input', renderClientesAutomaticos);
-  document.querySelectorAll('.chip-semana').forEach(ch=> ch.addEventListener('click', ()=>{
-    document.querySelectorAll('.chip-semana').forEach(x=>{ x.classList.remove('activo'); x.style.background='#fff'; x.style.color='#111'; x.style.borderColor='#E5E7EB'; });
-    ch.classList.add('activo'); ch.style.background='#14532D'; ch.style.color='#fff'; ch.style.borderColor='#14532D';
-    renderClientesAutomaticos();
-  }));
-  const chip0 = document.querySelector('.chip-semana'); if(chip0) chip0.classList.add('activo');
-}
-document.addEventListener('DOMContentLoaded', ()=>{ initAgregarProductoNuevo(); initClientesAutomaticos(); renderListaProductosConfig(); renderClientesAutomaticos(); });
-
-window.obtenerCatalogoUnificado = obtenerCatalogoUnificado;
-window.normalizarTelefonoChile = normalizarTelefonoChile;
-window.construirMensajeWhatsAppHoja = construirMensajeWhatsAppHoja;
-
-window.enviarWhatsAppPedido = enviarWhatsAppPedido;
-window.construirMensajeWhatsAppPedido = construirMensajeWhatsAppPedido;
 
 window.vistaPreviaHoja = vistaPreviaHoja;
 window.construirHtmlHoja = construirHtmlHoja;
