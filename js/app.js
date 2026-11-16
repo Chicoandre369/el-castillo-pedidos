@@ -1,5 +1,5 @@
 /* El Castillo de la Fruta - v0.2.0 - Logica extraida de index.html original (v0.1.0)
-   Seguridad v0.2.0: sin eval, sin document.write, escapeHtml en renders, CSP en index.html.
+   Seguridad v0.5.0: CSP estricta sin inline handlers, validacion, allowlist. sin eval, sin document.write, escapeHtml en renders, CSP en index.html.
    Datos: localStorage (pedidos, catalogo, clientes, historial) - no se suben a Git. */
 let catalogo = [];
 let pedidosPendientes = [];
@@ -167,8 +167,8 @@ function renderClientes(){
       </div>
       <div class="cliente-deuda ${c.deuda > 0 ? 'con-deuda' : ''}">$${Math.round(c.deuda || 0).toLocaleString('es-CL')}</div>
       <div class="cliente-actions">
-        <button class="btn-ghost btn-small" onclick="abonarDeuda(${i})">Abonar</button>
-        <button class="icon-btn" onclick="eliminarCliente(${i})" title="Eliminar">✕</button>
+        <button class="btn-ghost btn-small" data-action="abonarDeuda" data-index="${i}">Abonar</button>
+        <button class="icon-btn" data-action="eliminarCliente" data-index="${i}" title="Eliminar">✕</button>
       </div>
     </div>
   `).join('');
@@ -207,8 +207,8 @@ function renderHistorial(){
           <div class="cliente-sub">${h.pedidos.length} pedido(s)${totD > 0 ? ' · $' + Math.round(totD).toLocaleString('es-CL') : ''}</div>
         </div>
         <div class="cliente-actions">
-          <button class="btn-secondary btn-small" onclick="reimprimirHistorial(${i})">Reimprimir</button>
-          <button class="icon-btn" onclick="eliminarHistorial(${i})" title="Eliminar">✕</button>
+          <button class="btn-secondary btn-small" data-action="reimprimirHistorial" data-index="${i}">Reimprimir</button>
+          <button class="icon-btn" data-action="eliminarHistorial" data-index="${i}" title="Eliminar">✕</button>
         </div>
       </div>
     `;
@@ -311,7 +311,7 @@ function renderCatalogo(){
       <span style="font-size:0.85rem;">${escapeHtml(p.nombre)}</span>
       <span style="font-size:0.8rem;color:#8a8371;">${p.unidad}</span>
       <span style="font-size:0.8rem;color:#8a8371;">${p.precio>0 ? '$'+p.precio : '-'}</span>
-      <button class="icon-btn" onclick="eliminarProductoCatalogo(${i})" title="Eliminar">✕</button>
+      <button class="icon-btn" data-action="eliminarProductoCatalogo" data-index="${i}" title="Eliminar">✕</button>
     </div>
   `;
   }).join('');
@@ -773,16 +773,16 @@ function renderItemsRevision(){
   const cont = document.getElementById('itemsLista');
   cont.innerHTML = itemsEnRevision.map((it, i) => `
     <div class="item-row">
-      <input type="text" value="${escapeHtml(it.producto)}" onchange="itemsEnRevision[${i}].producto=this.value" />
-      <input type="number" step="0.1" value="${it.cantidad}" onchange="itemsEnRevision[${i}].cantidad=parseFloat(this.value)||0; actualizarTotalesPreview();" />
-      <select onchange="itemsEnRevision[${i}].unidad=this.value">
+      <input type="text" value="${escapeHtml(it.producto)}" data-field="producto" data-index="${i}" data-item-input="1" />
+      <input type="number" step="0.1" value="${it.cantidad}" data-field="cantidad" data-index="${i}" data-item-input="1" />
+      <select data-field="unidad" data-index="${i}" data-item-input="1">
         <option value="kg" ${it.unidad==='kg'?'selected':''}>kg</option>
         <option value="g" ${it.unidad==='g'?'selected':''}>g</option>
         <option value="unidad" ${it.unidad==='unidad'?'selected':''}>unidad</option>
         <option value="oferta" ${it.unidad==='oferta'?'selected':''}>OFERTA</option>
       </select>
-      <input type="number" value="${it.precio}" onchange="itemsEnRevision[${i}].precio=parseFloat(this.value)||0; actualizarTotalesPreview();" />
-      <button class="icon-btn" onclick="quitarItemRevision(${i})">✕</button>
+      <input type="number" value="${it.precio}" data-field="precio" data-index="${i}" data-item-input="1" />
+      <button class="icon-btn" data-action="quitarItemRevision" data-index="${i}">✕</button>
     </div>
   `).join('');
   actualizarTotalesPreview();
@@ -945,8 +945,8 @@ function renderPedidosPendientes(){
           <span>${totD>0? '$'+Math.round(totD).toLocaleString('es-CL') : ''}</span>
         </div>
         <div class="ticket-actions">
-          <button class="btn-secondary btn-small" onclick="editarPedidoPendiente(${i})">Editar</button>
-          <button class="btn-ghost" onclick="eliminarPedidoPendiente(${i})">Eliminar pedido</button>
+          <button class="btn-secondary btn-small" data-action="editarPedidoPendiente" data-index="${i}">Editar</button>
+          <button class="btn-ghost" data-action="eliminarPedidoPendiente" data-index="${i}">Eliminar pedido</button>
         </div>
       </div>
     `;
@@ -1035,7 +1035,88 @@ function generarWordDesdeLista(lista){
   document.getElementById('statusMsg').innerHTML = '<div class="status-msg ok">Documento generado y descargado.</div>';
 }
 
+
+// ================= v0.5.0 SEGURIDAD WEB =================
+// Bug: CSP script-src 'self' bloquea handlers inline (onclick="..."). Por eso Analizar no hacia nada en GitHub Pages y si en Netlify (sin CSP).
+// Fix: 0 handlers inline, todo con addEventListener + delegacion. Permite CSP estricta sin unsafe-inline en scripts (OWASP).
+function sanitizarTexto(v, maxLen){
+  if(typeof v !== 'string') return '';
+  return v.trim().slice(0, maxLen || 200);
+}
+function validarNumero(v, min, max){
+  const n = parseFloat(v);
+  if(!Number.isFinite(n)) return 0;
+  if(min !== undefined && n < min) return min;
+  if(max !== undefined && n > max) return max;
+  return n;
+}
+function validarArchivoLogo(file){
+  if(!file) return {ok:false, msg:'Sin archivo'};
+  if(!file.type || !file.type.startsWith('image/')) return {ok:false, msg:'El logo debe ser una imagen'};
+  if(file.size > 2*1024*1024) return {ok:false, msg:'El logo debe pesar menos de 2MB'};
+  return {ok:true};
+}
+document.addEventListener('click', function(e){
+  const btn = e.target.closest('[data-action]');
+  if(!btn) return;
+  const action = btn.getAttribute('data-action');
+  const idx = parseInt(btn.getAttribute('data-index'), 10);
+  if(!Number.isFinite(idx)) return;
+  const acciones = { abonarDeuda, eliminarCliente, reimprimirHistorial, eliminarHistorial, eliminarProductoCatalogo, quitarItemRevision, editarPedidoPendiente, eliminarPedidoPendiente };
+  const fn = acciones[action];
+  if(typeof fn === 'function') fn(idx);
+});
+document.addEventListener('change', function(e){
+  const el = e.target;
+  if(!el || !el.getAttribute('data-item-input')) return;
+  const idx = parseInt(el.getAttribute('data-index'), 10);
+  const field = el.getAttribute('data-field');
+  if(!Number.isFinite(idx) || !itemsEnRevision[idx]) return;
+  if(field === 'producto') itemsEnRevision[idx].producto = sanitizarTexto(el.value, 120);
+  if(field === 'cantidad') itemsEnRevision[idx].cantidad = validarNumero(el.value, 0, 10000);
+  if(field === 'unidad'){ const permitidas = ['kg','g','unidad']; if(permitidas.includes(el.value)) itemsEnRevision[idx].unidad = el.value; }
+  if(field === 'precio') itemsEnRevision[idx].precio = validarNumero(el.value, 0, 10000000);
+  if(typeof actualizarTotalesPreview === 'function') actualizarTotalesPreview();
+});
+document.addEventListener('input', function(e){
+  const el = e.target;
+  if(el && el.id === 'catBuscar' && typeof renderCatalogo === 'function') renderCatalogo();
+});
+function cablearEventosEstaticos(){
+  const mapa = [
+    ['btnQuitarLogo','click', function(){ if(typeof quitarLogo==='function') quitarLogo(); }],
+    ['btnAgregarProductoCatalogo','click', function(){ if(typeof agregarProductoCatalogo==='function') agregarProductoCatalogo(); }],
+    ['btnExportarCatalogoCSV','click', function(){ if(typeof exportarCatalogoCSV==='function') exportarCatalogoCSV(); }],
+    ['btnExportarBaseDatosCSV','click', function(){ if(typeof exportarBaseDatosCSV==='function') exportarBaseDatosCSV(); }],
+    ['btnAgregarCliente','click', function(){ if(typeof agregarCliente==='function') agregarCliente(); }],
+    ['btnAnalizarPedido','click', function(){ if(typeof analizarPedido==='function') analizarPedido(); }],
+    ['btnAgregarLineaManual','click', function(){ if(typeof agregarLineaManual==='function') agregarLineaManual(); }],
+    ['btnAgregarPedidoALaHoja','click', function(){ if(typeof agregarPedidoALaHoja==='function') agregarPedidoALaHoja(); }],
+    ['btnCancelarEdicion','click', function(){ if(typeof cancelarEdicion==='function') cancelarEdicion(); }],
+    ['btnGenerar','click', function(){ if(typeof generarWord==='function') generarWord(); }],
+    ['btnVaciarHoja','click', function(){ if(typeof vaciarHoja==='function') vaciarHoja(); }],
+    ['negNombre','change', function(){ if(typeof actualizarNombreNegocio==='function') actualizarNombreNegocio(); }],
+    ['negInfo','change', function(){ if(typeof actualizarInfoNegocio==='function') actualizarInfoNegocio(); }],
+    ['pedidosPorHojaSelect','change', function(){ if(typeof actualizarPedidosPorHoja==='function') actualizarPedidosPorHoja(); }],
+    ['reporteFecha','change', function(){ if(typeof renderReporte==='function') renderReporte(); }],
+  ];
+  mapa.forEach(function(item){
+    const el = document.getElementById(item[0]);
+    if(el) el.addEventListener(item[1], item[2]);
+  });
+  const logoInput = document.getElementById('negLogo');
+  if(logoInput){
+    logoInput.addEventListener('change', function(){
+      const f = logoInput.files && logoInput.files[0];
+      const v = validarArchivoLogo(f);
+      if(!v.ok){ alert(v.msg); logoInput.value=''; return; }
+      if(typeof cargarLogo==='function') cargarLogo(logoInput);
+    });
+  }
+}
+// ================= FIN v0.5.0 =================
 // init
+cablearEventosEstaticos();
 cargarConfig();
 cargarCatalogo();
 cargarClientes();

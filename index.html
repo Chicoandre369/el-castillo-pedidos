@@ -1,11 +1,12 @@
-<!-- El Castillo de la Fruta - v0.2.0 - Estructura separada. CSS en css/styles.css, JS en js/app.js -->
+<!-- El Castillo v0.5.0 - Seguridad web completa --> - Estructura separada. CSS en css/styles.css, JS en js/app.js -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hoja de Pedidos | El Castillo de la Fruta</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
+<meta name="referrer" content="no-referrer">
 <link rel="stylesheet" href="css/styles.css">
 
 </head>
@@ -27,17 +28,17 @@
     <details id="negocioDetails">
       <summary>Datos del negocio (para la impresión)</summary>
       <label for="negNombre">Nombre del negocio</label>
-      <input type="text" id="negNombre" placeholder="ej: El Castillo de la Fruta" onchange="actualizarNombreNegocio()">
+      <input type="text" id="negNombre" placeholder="ej: El Castillo de la Fruta">
       <label for="negInfo">Dirección / teléfono / info adicional</label>
-      <input type="text" id="negInfo" placeholder="ej: Av. Siempre Viva 123 · +56 9 1234 5678" onchange="actualizarInfoNegocio()">
+      <input type="text" id="negInfo" placeholder="ej: Av. Siempre Viva 123 · +56 9 1234 5678">
       <label for="negLogo">Logo del negocio (aparece en el Word)</label>
-      <input type="file" id="negLogo" accept="image/*" onchange="cargarLogo(this)">
+      <input type="file" id="negLogo" accept="image/*">
       <img id="logoPreview" class="logo-preview" src="" alt="Logo">
       <div class="config-row">
-        <button class="btn-ghost btn-small" onclick="quitarLogo()">Quitar logo</button>
+        <button class="btn-ghost btn-small" id="btnQuitarLogo">Quitar logo</button>
       </div>
       <label for="pedidosPorHojaSelect">Pedidos por hoja de Word</label>
-      <select id="pedidosPorHojaSelect" onchange="actualizarPedidosPorHoja()">
+      <select id="pedidosPorHojaSelect">
         <option value="2">2 por hoja</option>
         <option value="3">3 por hoja</option>
         <option value="4">4 por hoja</option>
@@ -51,7 +52,7 @@
     <details id="catalogoDetails">
       <summary>Catálogo de productos <span class="count-badge" id="catCount">0</span></summary>
       <label for="catBuscar" style="margin-top:0;">Buscar en el catálogo</label>
-      <input type="text" id="catBuscar" placeholder="Escribe para filtrar..." oninput="renderCatalogo()">
+      <input type="text" id="catBuscar" placeholder="Escribe para filtrar...">
       <div id="catalogoLista"></div>
       <div class="col-labels" id="catalogoAddLabels" style="grid-template-columns:1fr 78px 70px auto;">
         <span>Producto</span><span>Unidad</span><span>Precio</span><span></span>
@@ -65,13 +66,13 @@
           <option value="oferta">OFERTA</option>
         </select>
         <input type="number" id="catPrecio" placeholder="$/kg o c/u">
-        <button class="btn-secondary btn-small" onclick="agregarProductoCatalogo()">+ Agregar</button>
+        <button class="btn-secondary btn-small" id="btnAgregarProductoCatalogo">+ Agregar</button>
       </div>
       <p class="empty-hint">El precio y la unidad por defecto se usan para completar automáticamente los pedidos que pegues abajo.</p>
       <p class="empty-hint"><b>Regla de pedidos:</b> si escribes una cantidad sin indicar kg/g/unidad, se interpreta como unidades. Si no escribes cantidad, se usa la unidad habitual del producto. Una unidad escrita explícitamente por el cliente siempre tiene prioridad.</p>
       <div class="config-row">
-        <button class="btn-secondary btn-small" onclick="exportarCatalogoCSV()">⬇ Exportar catálogo (Excel/CSV)</button>
-        <button class="btn-secondary btn-small" onclick="exportarBaseDatosCSV()">⬇ Exportar base de datos (Excel/CSV)</button>
+        <button class="btn-secondary btn-small" id="btnExportarCatalogoCSV">⬇ Exportar catálogo (Excel/CSV)</button>
+        <button class="btn-secondary btn-small" id="btnExportarBaseDatosCSV">⬇ Exportar base de datos (Excel/CSV)</button>
       </div>
     </details>
   </section>
@@ -86,7 +87,7 @@
         <input type="text" id="cliDireccion" placeholder="Dirección (opcional)">
         <input type="text" id="cliTelefono" placeholder="Teléfono (opcional)">
       </div>
-      <button class="btn-secondary btn-small" style="margin-top:8px;" onclick="agregarCliente()">+ Agregar / actualizar cliente</button>
+      <button class="btn-secondary btn-small" style="margin-top:8px;" id="btnAgregarCliente">+ Agregar / actualizar cliente</button>
       <p class="empty-hint">Al escribir un nombre de cliente en "Nuevo pedido" se sugerirán los ya guardados.</p>
     </details>
   </section>
@@ -101,13 +102,13 @@
     <label for="textoInput">Pega aquí el mensaje de WhatsApp</label>
     <textarea id="textoInput" placeholder="hola casero buenos días necesito...&#10;2 tomate&#10;1kg palta&#10;lechuga x2"></textarea>
 
-    <button class="btn-secondary" style="width:100%;margin-top:10px;" onclick="analizarPedido()">Analizar pedido</button>
+    <button class="btn-secondary" style="width:100%;margin-top:10px;" id="btnAnalizarPedido">Analizar pedido</button>
 
     <div id="revisionWrap" style="display:none;margin-top:14px;">
       <label style="margin-top:4px;">Revisa y corrige antes de agregar</label>
       <div class="col-labels"><span>Producto</span><span>Cant.</span><span>Unidad</span><span>Subtotal</span><span></span></div>
       <div id="itemsLista"></div>
-      <button class="btn-secondary btn-small" onclick="agregarLineaManual()">+ Agregar línea</button>
+      <button class="btn-secondary btn-small" id="btnAgregarLineaManual">+ Agregar línea</button>
 
       <div class="totales" id="totalesPreview"></div>
 
@@ -115,8 +116,8 @@
         <input type="checkbox" id="fiadoCheckbox" style="width:auto;"> Pedido fiado (se suma a la deuda del cliente)
       </label>
 
-      <button class="btn-primary" onclick="agregarPedidoALaHoja()">Agregar este pedido a la hoja</button>
-      <button class="btn-ghost" id="btnCancelarEdicion" style="display:none;width:100%;text-align:center;" onclick="cancelarEdicion()">Cancelar edición</button>
+      <button class="btn-primary" id="btnAgregarPedidoALaHoja">Agregar este pedido a la hoja</button>
+      <button class="btn-ghost" id="btnCancelarEdicion" style="display:none;width:100%;text-align:center;">Cancelar edición</button>
     </div>
     <div id="statusMsg"></div>
   </section>
@@ -128,8 +129,8 @@
     <div id="pedidosLista"></div>
     <div id="pedidosEmpty" class="empty-hint">Todavía no has agregado pedidos.</div>
 
-    <button class="btn-tomato" id="btnGenerar" onclick="generarWord()" disabled>📄 Generar documento Word</button>
-    <button class="btn-ghost" style="margin-top:8px;" onclick="vaciarHoja()">Vaciar toda la hoja</button>
+    <button class="btn-tomato" id="btnGenerar" disabled>📄 Generar documento Word</button>
+    <button class="btn-ghost" style="margin-top:8px;" id="btnVaciarHoja">Vaciar toda la hoja</button>
   </section>
 
   <!-- REPORTE DEL DIA -->
@@ -137,7 +138,7 @@
     <details id="reporteDetails">
       <summary>Reporte del día</summary>
       <label for="reporteFecha" style="margin-top:0;">Fecha</label>
-      <input type="date" id="reporteFecha" onchange="renderReporte()">
+      <input type="date" id="reporteFecha">
       <div id="reporteResumen"></div>
       <label style="margin-top:10px;">Productos más pedidos ese día</label>
       <div id="reporteTop"></div>
