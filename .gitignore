@@ -12,3 +12,4 @@ build/
 *.local.json
 export_*.csv
 backup_*.json
+backups/
