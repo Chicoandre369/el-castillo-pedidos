@@ -1133,3 +1133,44 @@ cargarHistorial();
 cargarVentasLog();
 document.getElementById('reporteFecha').value = fechaLocalISO();
 renderReporte();
+
+// ================= v0.7.0 - Compartir por WhatsApp =================
+// Flujo local: 1) llega pedido a WhatsApp 2) copiar 3) pegar en app anclada 4) Analizar
+// 5) pesar y poner valor 6) Generar Word para imprimir y corchetear en la caja
+// 7) NUEVO: Compartir por WhatsApp - genera texto listo para enviar al cliente:
+// "Hola {cliente}, tu pedido en El Castillo: - 2 kg Tomate $... Total $... Revisa tu hoja impresa en la caja. Gracias!"
+function construirMensajeWhatsApp(){
+  const cliente = (document.getElementById('clienteInput').value || '').trim() || 'Cliente';
+  const items = itemsEnRevision.filter(it => it.producto && it.producto.trim() !== '');
+  if(items.length === 0) return null;
+  const lineas = items.map(it => `- ${it.cantidad} ${it.unidad} ${it.producto} - $${Math.round(it.precio || 0).toLocaleString('es-CL')}`);
+  const total = items.reduce((a,it)=>a+(it.precio||0),0);
+  const totalKg = items.filter(it=>it.unidad==='kg').reduce((a,it)=>a+it.cantidad,0);
+  const totalUn = items.filter(it=>it.unidad==='unidad').reduce((a,it)=>a+it.cantidad,0);
+  let msg = `Hola ${cliente}, tu pedido en El Castillo de la Fruta:\n${lineas.join('\n')}\n`;
+  if(totalKg>0) msg += `Total kilos: ${totalKg} kg\n`;
+  if(totalUn>0) msg += `Total unidades: ${totalUn}\n`;
+  msg += `Total: $${Math.round(total).toLocaleString('es-CL')}\nRevisa tu hoja impresa que va corcheteada en tu caja. ¡Gracias!`;
+  return msg;
+}
+function compartirPorWhatsApp(){
+  const msg = construirMensajeWhatsApp();
+  const statusEl = document.getElementById('statusMsg');
+  if(!msg){
+    if(statusEl) statusEl.innerHTML = '<div class="status-msg warn">Primero analiza el pedido y agrega productos para compartir.</div>';
+    return;
+  }
+  const url = 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank', 'noopener');
+  if(statusEl) statusEl.innerHTML = '<div class="status-msg ok">Mensaje listo para WhatsApp. Elige al cliente y envíalo. La hoja Word sigue lista para imprimir.</div>';
+}
+// Cablear boton WhatsApp (seguro, sin inline)
+document.addEventListener('DOMContentLoaded', function(){
+  const b = document.getElementById('btnCompartirWhatsApp');
+  if(b) b.addEventListener('click', compartirPorWhatsApp);
+});
+// Fallback si DOMContentLoaded ya paso
+(function(){
+  const b = document.getElementById('btnCompartirWhatsApp');
+  if(b && !b.dataset.cableado){ b.dataset.cableado='1'; b.addEventListener('click', compartirPorWhatsApp); }
+})();
