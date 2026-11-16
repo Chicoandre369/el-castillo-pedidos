@@ -1263,7 +1263,8 @@ function showTab(tab){
   });
   window.scrollTo({top:0, behavior:'instant'});
   try{ localStorage.setItem('castillo_tab_activa', tab); }catch(e){}
-  if(tab==='estadisticas' && typeof renderReporte==='function') renderReporte();
+  if(tab==='clientes'){ if(typeof renderReporte==='function') renderReporte(); if(typeof renderClientesAutomaticos==='function') renderClientesAutomaticos(); }
+  if(tab==='productos' && typeof renderListaProductosConfig==='function') renderListaProductosConfig();
   if(tab==='pedidos' && typeof renderPedidosPendientes==='function') renderPedidosPendientes();
 }
 function initTabsV091(){
@@ -1283,49 +1284,155 @@ function initTabsV091(){
   // Tab guardada o Inicio por defecto
   let saved = 'inicio';
   try{ saved = localStorage.getItem('castillo_tab_activa') || 'inicio'; }catch(e){}
-  if(!['inicio','pedidos','estadisticas','config'].includes(saved)) saved='inicio';
+  if(!['inicio','pedidos','clientes','productos'].includes(saved)) saved='inicio';
   showTab(saved);
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v0.9.3 Catalogo base - usa la misma clave real =================
-const CATALOGO_BASE_V093 = [
-  {nombre:'Tomate', unidad:'kg', precio:1800},
-  {nombre:'Papa', unidad:'kg', precio:1200},
-  {nombre:'Cebolla', unidad:'kg', precio:1300},
-  {nombre:'Zanahoria', unidad:'kg', precio:1100},
-  {nombre:'Manzana', unidad:'kg', precio:1900},
-  {nombre:'Platano', unidad:'kg', precio:1400},
-  {nombre:'Naranja', unidad:'kg', precio:1500},
-  {nombre:'Limon', unidad:'kg', precio:1700},
-  {nombre:'Palta', unidad:'kg', precio:4500},
-  {nombre:'Lechuga', unidad:'unidad', precio:1200},
-  {nombre:'Pepino', unidad:'kg', precio:1400},
-  {nombre:'Pimenton', unidad:'kg', precio:2200},
-  {nombre:'Ajo', unidad:'kg', precio:5500},
-  {nombre:'Uva', unidad:'kg', precio:2500},
-  {nombre:'Pera', unidad:'kg', precio:1800},
-];
-function cargarCatalogoBaseV093(){
-  const msg = document.getElementById('msgCatalogoBase');
-  try{
-    if(typeof catalogo === 'undefined') return;
-    const existentes = new Set(catalogo.map(p=>String(p.nombre||'').toLowerCase().trim()));
-    let agregados = 0;
-    CATALOGO_BASE_V093.forEach(p=>{
-      if(!existentes.has(p.nombre.toLowerCase())){
-        catalogo.push({nombre:p.nombre, unidad:p.unidad, precio:p.precio});
-        agregados++;
-      }
-    });
-    if(typeof guardarCatalogo==='function') guardarCatalogo();
-    if(typeof renderCatalogo==='function') renderCatalogo();
-    if(msg) msg.textContent = agregados>0 ? 'Listo: se agregaron '+agregados+' productos base. Revisa los precios y corrige los que necesites.' : 'Ya tenias el catalogo base cargado.';
-  }catch(e){
-    if(msg) msg.textContent = 'Estas en Nav. privada, el celular no guarda. Cierra la privada y abre en modo normal para que quede guardado.';
-  }
+// ================= v0.9.4 CORREGIDA: productos nuevos + clientes automaticos =================
+// Negocio fijo - ya no se edita
+const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
+function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
+function lev(a,b){ const m=a.length,n=b.length; if(!m) return n; if(!n) return m; const d=Array.from({length:m+1},(_,i)=>[i]); for(let j=1;j<=n;j++) d[0][j]=j; for(let i=1;i<=m;i++){ for(let j=1;j<=n;j++){ d[i][j]=Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+(a[i-1]===b[j-1]?0:1)); } } return d[m][n]; }
+function buscarProductoParecido(nombreMal){
+  const n = normTxt(nombreMal);
+  if(!n) return null;
+  let catalogo = [];
+  try{ catalogo = JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
+  // 1) alias exacto
+  for(const p of catalogo){ const alias = (p.alias||'').split(',').map(normTxt); if(alias.includes(n)) return {producto:p, tipo:'alias'}; }
+  // 2) parecido por distancia (tolera 1-2 letras mal escritas: tomte -> tomate, savahoria -> zanahoria)
+  let mejor=null, mejorDist=99;
+  for(const p of catalogo){ const d = lev(n, normTxt(p.nombre||p.name||'')); if(d<mejorDist){ mejorDist=d; mejor=p; } }
+  const umbral = n.length<=4 ? 1 : 2;
+  if(mejor && mejorDist<=umbral) return {producto:mejor, tipo:'parecido', dist:mejorDist};
+  return null;
 }
-document.addEventListener('DOMContentLoaded', ()=>{
-  const b = document.getElementById('btnCargarCatalogoBase');
-  if(b) b.addEventListener('click', cargarCatalogoBaseV093);
-});
+window.buscarProductoParecido = buscarProductoParecido;
+// Mostrar aviso cuando un producto del pedido no se reconocio
+function mostrarProductosNoReconocidos(noReconocidos){
+  const wrap = document.getElementById('revisionWrap');
+  if(!wrap || !noReconocidos || !noReconocidos.length) return;
+  const items = noReconocidos.map(n=>{
+    const sug = buscarProductoParecido(n);
+    const btnSug = sug ? `<button data-corregir-a="${(sug.producto.nombre||sug.producto.name||'').replace(/"/g,'')}" data-corregir-de="${n.replace(/"/g,'')}" style="margin-left:6px;padding:6px 10px;border:none;border-radius:999px;background:#14532D;color:#fff;font-weight:700;font-size:12px;">Usar ${(sug.producto.nombre||sug.producto.name)}</button>` : '';
+    return `<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid #F3F4F6;"><span>⚠️ <b>${n}</b> no está en la lista.</span>${btnSug}<button data-agregar-nuevo="${n.replace(/"/g,'')}" style="padding:6px 10px;border:1px solid #14532D;border-radius:999px;background:#fff;color:#14532D;font-weight:700;font-size:12px;">＋ Agregar como nuevo</button></div>`;
+  }).join('');
+  const div = document.createElement('div');
+  div.id='avisoNoReconocidos';
+  div.style.cssText='background:#FFFBEB;border:1px solid #FDE68A;border-radius:14px;padding:12px;margin:10px 0;';
+  div.innerHTML = `<b>¿El cliente escribió mal un producto?</b><p style="margin:4px 0 8px;color:#6B7280;font-size:13px;">No se perdió. Elige corregirlo o agrégalo como producto nuevo y la próxima vez ya lo va a reconocer.</p>${items}`;
+  const old = document.getElementById('avisoNoReconocidos'); if(old) old.remove();
+  wrap.prepend(div);
+  div.querySelectorAll('[data-agregar-nuevo]').forEach(b=> b.addEventListener('click', ()=>{
+    const nombre = b.dataset.agregarNuevo;
+    document.getElementById('nuevoProdNombre').value = nombre;
+    showTab('productos');
+    document.getElementById('nuevoProdNombre').focus();
+  }));
+  div.querySelectorAll('[data-corregir-a]').forEach(b=> b.addEventListener('click', ()=>{
+    // Reemplaza el texto en el textarea y re-analiza
+    const ta = document.getElementById('pedidoTexto') || document.querySelector('textarea');
+    if(ta){ ta.value = ta.value.split(b.dataset.corregirDe).join(b.dataset.corregirA); const btn = document.getElementById('btnAnalizar'); if(btn) btn.click(); }
+  }));
+}
+window.mostrarProductosNoReconocidos = mostrarProductosNoReconocidos;
+// --- Agregar producto nuevo ---
+function initAgregarProductoNuevo(){
+  const btn = document.getElementById('btnAgregarProductoNuevo'); if(!btn) return;
+  const unidadSel = document.getElementById('nuevoProdUnidad');
+  if(unidadSel) unidadSel.addEventListener('change', ()=>{ document.getElementById('nuevoProdUnidadLabel').textContent = unidadSel.value; });
+  btn.addEventListener('click', ()=>{
+    const nombre = (document.getElementById('nuevoProdNombre').value||'').trim();
+    const unidad = unidadSel.value||'kg';
+    const precio = parseFloat(document.getElementById('nuevoProdPrecio').value||'0')||0;
+    const alias = (document.getElementById('nuevoProdAlias').value||'').trim();
+    const msg = document.getElementById('msgNuevoProducto');
+    if(!nombre){ msg.textContent='Escribe el nombre del producto.'; msg.style.color='#B91C1C'; return; }
+    let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
+    if(cat.some(p=> normTxt(p.nombre||p.name)==normTxt(nombre))){ msg.textContent='Ese producto ya está en la lista.'; msg.style.color='#B91C1C'; return; }
+    cat.push({ nombre, name:nombre, unidad, precio, alias });
+    localStorage.setItem('castillo_catalogo', JSON.stringify(cat));
+    // Tambien probar otras claves que use la app vieja
+    try{ localStorage.setItem('catalogo', JSON.stringify(cat)); }catch(e){}
+    msg.textContent = `✅ ${nombre} agregado. Ya lo puedes usar en el próximo pedido.`; msg.style.color='#14532D';
+    document.getElementById('nuevoProdNombre').value=''; document.getElementById('nuevoProdPrecio').value=''; document.getElementById('nuevoProdAlias').value='';
+    renderListaProductosConfig();
+    if(typeof renderCatalogo==='function') renderCatalogo();
+  });
+  const busc = document.getElementById('buscarProductoNuevo');
+  if(busc) busc.addEventListener('input', renderListaProductosConfig);
+}
+function renderListaProductosConfig(){
+  const cont = document.getElementById('listaProductosConfig'); if(!cont) return;
+  let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
+  const q = normTxt(document.getElementById('buscarProductoNuevo')?.value||'');
+  const filtrados = q ? cat.filter(p=> normTxt(p.nombre||p.name).includes(q)) : cat;
+  const c2 = document.getElementById('catCount2'); if(c2) c2.textContent = cat.length;
+  const cOld = document.getElementById('catCount'); if(cOld) cOld.textContent = cat.length;
+  if(!filtrados.length){ cont.innerHTML='<p style="color:#6B7280;font-size:13px;">Sin productos con ese nombre. Agrégalo arriba.</p>'; return; }
+  cont.innerHTML = filtrados.slice(-50).reverse().map(p=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;"><span><b>${p.nombre||p.name}</b> <span style="color:#6B7280;">· ${p.unidad||'kg'}</span></span><b>$${(p.precio||0).toLocaleString('es-CL')}</b></div>`).join('');
+}
+// --- Clientes automaticos desde pedidos ---
+function obtenerClientesAutomaticos(){
+  // Fuente 1: pedidos pendientes + historial guardado
+  let pedidos=[];
+  try{ pedidos = JSON.parse(localStorage.getItem('castillo_pedidos')||localStorage.getItem('pedidosPendientes')||'[]'); }catch(e){}
+  try{ const hist = JSON.parse(localStorage.getItem('castillo_historial')||'[]'); if(Array.isArray(hist)) pedidos = pedidos.concat(hist); }catch(e){}
+  // Fuente 2: si la app guarda clientes viejos, los mezcla sin duplicar
+  let viejos=[]; try{ viejos = JSON.parse(localStorage.getItem('castillo_clientes')||'[]'); }catch(e){}
+  const mapa = new Map();
+  const agregar = (nombre, info)=>{
+    if(!nombre) return; const key = normTxt(nombre);
+    if(!mapa.has(key)) mapa.set(key, { nombre: nombre.trim(), pedidos:0, total:0, productos:{}, localidad:'', telefono:'', correo:'', ultima:'', semanas:new Set() });
+    const c = mapa.get(key); c.pedidos++; c.total += (info.total||0);
+    (info.productos||[]).forEach(pr=>{ const k=pr.nombre||pr.name||pr; c.productos[k]=(c.productos[k]||0)+(pr.kg||pr.cantidad||1); });
+    if(info.localidad) c.localidad=info.localidad; if(info.telefono) c.telefono=info.telefono; if(info.correo) c.correo=info.correo;
+    if(info.fecha){ c.ultima=info.fecha; const d=new Date(info.fecha); const lunes=new Date(d); lunes.setDate(d.getDate()-((d.getDay()+6)%7)); c.semanas.add(lunes.toISOString().slice(0,10)); }
+  };
+  pedidos.forEach(p=> agregar(p.cliente||p.nombre||p.clienteNombre, { total:p.total||p.monto||0, productos:p.productos||p.items||[], localidad:p.localidad||p.direccion||p.direc, telefono:p.telefono||p.fono, correo:p.correo||p.email, fecha:p.fecha||p.createdAt }));
+  viejos.forEach(v=> agregar(v.nombre||v.name, { localidad:v.localidad||v.direccion, telefono:v.telefono||v.fono, correo:v.correo||v.email }));
+  return [...mapa.values()].sort((a,b)=> b.pedidos - a.pedidos);
+}
+function renderClientesAutomaticos(){
+  const cont = document.getElementById('listaClientesAuto'); if(!cont) return;
+  let lista = obtenerClientesAutomaticos();
+  const q = normTxt(document.getElementById('buscarCliente')?.value||'');
+  if(q) lista = lista.filter(c=> normTxt(c.nombre).includes(q) || normTxt(c.localidad).includes(q));
+  const filtro = document.querySelector('.chip-semana.activo')?.dataset.filtroSemana || 'todas';
+  if(filtro!=='todas'){
+    const hoy=new Date(); const lunes=new Date(hoy); lunes.setDate(hoy.getDate()-((hoy.getDay()+6)%7));
+    const semanaEsta = lunes.toISOString().slice(0,10);
+    const lunesAnt = new Date(lunes); lunesAnt.setDate(lunes.getDate()-7); const semanaAnt = lunesAnt.toISOString().slice(0,10);
+    lista = lista.filter(c=> c.semanas.has(filtro==='esta'? semanaEsta : semanaAnt));
+  }
+  const msg = document.getElementById('msgClientesAuto');
+  if(!lista.length){ cont.innerHTML=''; if(msg) msg.textContent = 'Aún no hay clientes. Pega un pedido en Inicio y acá va a aparecer solo.'; return; }
+  if(msg) msg.textContent = `${lista.length} cliente(s) · Ordenados por los que más piden`;
+  cont.innerHTML = lista.map(c=>{
+    const top = Object.entries(c.productos).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([n,k])=> `${n} (${k} kg)`).join(' · ') || 'Sin detalle de productos todavía';
+    const contacto = [c.localidad, c.telefono, c.correo].filter(Boolean).join(' · ');
+    return `<article style="background:#fff;border:1px solid #E8EDE9;border-radius:16px;padding:14px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;gap:8px;"><b style="font-size:16px;">${c.nombre}</b><span style="background:#F0FDF4;color:#14532D;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700;white-space:nowrap;">${c.pedidos} pedido(s)</span></div>
+      ${contacto? `<p style="margin:6px 0 0;color:#4B5563;font-size:13px;">${contacto}</p>` : `<p style="margin:6px 0 0;color:#9CA3AF;font-size:13px;">Sin localidad / teléfono todavía — agrégalo cuando lo tengas</p>`}
+      <p style="margin:8px 0 0;font-size:13px;"><span style="color:#6B7280;">Siempre lleva:</span> <b>${top}</b></p>
+      <p style="margin:4px 0 0;font-size:13px;color:#6B7280;">Total: <b style="color:#111;">$${c.total.toLocaleString('es-CL')}</b> · Último: ${c.ultima? new Date(c.ultima).toLocaleDateString('es-CL') : '—'}</p>
+      <button data-pedido-cliente="${c.nombre.replace(/"/g,'')}" style="margin-top:10px;padding:8px 14px;border:1px solid #E5E7EB;border-radius:999px;background:#fff;font-weight:700;font-size:13px;">＋ Nuevo pedido para ${c.nombre.split(' ')[0]}</button>
+    </article>`;
+  }).join('');
+  cont.querySelectorAll('[data-pedido-cliente]').forEach(b=> b.addEventListener('click', ()=>{
+    const input = document.getElementById('clienteNombre') || document.querySelector('input[placeholder*="cliente" i]');
+    if(input) input.value = b.dataset.pedidoCliente;
+    showTab('inicio');
+  }));
+}
+function initClientesAutomaticos(){
+  const busc = document.getElementById('buscarCliente'); if(busc) busc.addEventListener('input', renderClientesAutomaticos);
+  document.querySelectorAll('.chip-semana').forEach(ch=> ch.addEventListener('click', ()=>{
+    document.querySelectorAll('.chip-semana').forEach(x=>{ x.classList.remove('activo'); x.style.background='#fff'; x.style.color='#111'; x.style.borderColor='#E5E7EB'; });
+    ch.classList.add('activo'); ch.style.background='#14532D'; ch.style.color='#fff'; ch.style.borderColor='#14532D';
+    renderClientesAutomaticos();
+  }));
+  const chip0 = document.querySelector('.chip-semana'); if(chip0) chip0.classList.add('activo');
+}
+document.addEventListener('DOMContentLoaded', ()=>{ initAgregarProductoNuevo(); initClientesAutomaticos(); renderListaProductosConfig(); renderClientesAutomaticos(); });
