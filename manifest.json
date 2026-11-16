@@ -1,0 +1,16 @@
+{
+  "name": "El Castillo de la Fruta - Pedidos",
+  "short_name": "El Castillo",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#FFFDF5",
+  "theme_color": "#0F2E1A",
+  "icons": [
+    {
+      "src": "img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

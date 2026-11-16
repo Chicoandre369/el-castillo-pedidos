@@ -1,4 +1,4 @@
-<!-- El Castillo v0.5.0 - Seguridad web completa --> - Estructura separada. CSS en css/styles.css, JS en js/app.js -->
+<!-- El Castillo v0.7.0 - Diseno Prototipo + WhatsApp - Seguridad web completa --> - Estructura separada. CSS en css/styles.css, JS en js/app.js -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,9 +8,27 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
 <meta name="referrer" content="no-referrer">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0F2E1A">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" href="img/logo.png">
 
 </head>
 <body>
+<div class="topbar">
+  <div class="topbar-left">
+    <img src="img/logo.png" alt="El Castillo de la Fruta" class="topbar-logo">
+    <div><div class="topbar-title">El Castillo de la Fruta</div><div class="topbar-sub">Propuesta de plataforma propia</div></div>
+  </div>
+  <div class="topbar-badges"><span class="badge">Vista Cliente</span><span class="badge badge-naranja">Vista Dueños</span></div>
+</div>
+<div class="banner">Estás viendo la Vista Dueños - Todo funciona sin recargar</div>
+<div class="wrap">
+<h1>Hoy, pedidos del local</h1>
+<p class="sub">Todo se maneja desde el celular. Pega el pedido de WhatsApp, pesa, pon el valor y genera la hoja.</p>
+
 
 <header class="header">
     <img src="img/logo.png" alt="Logo El Castillo de la Fruta" class="logo">
@@ -129,7 +147,8 @@
     <div id="pedidosLista"></div>
     <div id="pedidosEmpty" class="empty-hint">Todavía no has agregado pedidos.</div>
 
-    <button class="btn-tomato" id="btnGenerar" disabled>📄 Generar documento Word</button>
+    <button class="btn-whatsapp" id="btnCompartirWhatsApp" type="button">Compartir por WhatsApp al cliente</button>
+<button class="btn-tomato" id="btnGenerar" disabled>📄 Generar documento Word</button>
     <button class="btn-ghost" style="margin-top:8px;" id="btnVaciarHoja">Vaciar toda la hoja</button>
   </section>
 
@@ -159,5 +178,6 @@
 
 
   <script src="js/app.js"></script>
+</div>
 </body>
 </html>
