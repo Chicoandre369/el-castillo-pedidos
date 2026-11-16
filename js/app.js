@@ -1287,3 +1287,45 @@ function initTabsV091(){
   showTab(saved);
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
+
+// ================= v0.9.3 Catalogo base - usa la misma clave real =================
+const CATALOGO_BASE_V093 = [
+  {nombre:'Tomate', unidad:'kg', precio:1800},
+  {nombre:'Papa', unidad:'kg', precio:1200},
+  {nombre:'Cebolla', unidad:'kg', precio:1300},
+  {nombre:'Zanahoria', unidad:'kg', precio:1100},
+  {nombre:'Manzana', unidad:'kg', precio:1900},
+  {nombre:'Platano', unidad:'kg', precio:1400},
+  {nombre:'Naranja', unidad:'kg', precio:1500},
+  {nombre:'Limon', unidad:'kg', precio:1700},
+  {nombre:'Palta', unidad:'kg', precio:4500},
+  {nombre:'Lechuga', unidad:'unidad', precio:1200},
+  {nombre:'Pepino', unidad:'kg', precio:1400},
+  {nombre:'Pimenton', unidad:'kg', precio:2200},
+  {nombre:'Ajo', unidad:'kg', precio:5500},
+  {nombre:'Uva', unidad:'kg', precio:2500},
+  {nombre:'Pera', unidad:'kg', precio:1800},
+];
+function cargarCatalogoBaseV093(){
+  const msg = document.getElementById('msgCatalogoBase');
+  try{
+    if(typeof catalogo === 'undefined') return;
+    const existentes = new Set(catalogo.map(p=>String(p.nombre||'').toLowerCase().trim()));
+    let agregados = 0;
+    CATALOGO_BASE_V093.forEach(p=>{
+      if(!existentes.has(p.nombre.toLowerCase())){
+        catalogo.push({nombre:p.nombre, unidad:p.unidad, precio:p.precio});
+        agregados++;
+      }
+    });
+    if(typeof guardarCatalogo==='function') guardarCatalogo();
+    if(typeof renderCatalogo==='function') renderCatalogo();
+    if(msg) msg.textContent = agregados>0 ? 'Listo: se agregaron '+agregados+' productos base. Revisa los precios y corrige los que necesites.' : 'Ya tenias el catalogo base cargado.';
+  }catch(e){
+    if(msg) msg.textContent = 'Estas en Nav. privada, el celular no guarda. Cierra la privada y abre en modo normal para que quede guardado.';
+  }
+}
+document.addEventListener('DOMContentLoaded', ()=>{
+  const b = document.getElementById('btnCargarCatalogoBase');
+  if(b) b.addEventListener('click', cargarCatalogoBaseV093);
+});

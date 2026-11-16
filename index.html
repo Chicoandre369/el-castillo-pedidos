@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>El Castillo de la Fruta - Pedidos</title>
-<link rel="stylesheet" href="css/styles.css?v=092">
+<link rel="stylesheet" href="css/styles.css?v=093">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
@@ -81,7 +81,9 @@
 <div style="display:block;width:100%;margin-bottom:12px;"><label for="catUnidad" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Unidad</label><select id="catUnidad" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"><option value="kg">kg</option><option value="g">g</option><option value="unidad">unidad</option><option value="oferta">OFERTA</option></select></div>
 <div style="display:block;width:100%;margin-bottom:12px;"><label for="catPrecio" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Precio $/kg o c/u</label><input type="number" id="catPrecio" placeholder="$/kg o c/u" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
 <div style="display:block;width:100%;margin-bottom:12px;"><button type="button" id="btnAgregarProductoCatalogo" style="width:100%;padding:12px;border:0;border-radius:12px;background:#14532D;color:#fff;font-weight:700;">+ Agregar producto</button></div>
-<div style="display:block;width:100%;"><button type="button" id="btnExportarCatalogoCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;margin-bottom:8px;">⬇ Exportar catálogo</button><button type="button" id="btnExportarBaseDatosCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;">⬇ Exportar base</button></div>
+<div style="display:block;width:100%;"><button type="button" id="btnExportarCatalogoCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;margin-bottom:8px;">⬇ Exportar catálogo</button>
+        <button type="button" id="btnCargarCatalogoBase" class="btn btn-secondary" style="width:100%;margin-top:8px;">🍎 Cargar catálogo base (frutas y verduras)</button>
+        <p id="msgCatalogoBase" style="font-size:13px;color:#4B5563;margin:8px 0 0;"></p><button type="button" id="btnExportarBaseDatosCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;">⬇ Exportar base</button></div>
 </section>
   <section class="card card-config" id="clientesDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
 <h3 style="margin:0 0 8px;">Clientes <span id="cliCount">0</span></h3>
@@ -101,5 +103,5 @@
   <button type="button" class="nav-item" data-nav="estadisticas" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>📊</span><span style="font-size:11px;">Estadísticas</span></button>
   <button type="button" class="nav-item" data-nav="config" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>⚙️</span><span style="font-size:11px;">Configuración</span></button>
 </nav>
-<script src="js/app.js?v=092"></script>
+<script src="js/app.js?v=093"></script>
 </body></html>
