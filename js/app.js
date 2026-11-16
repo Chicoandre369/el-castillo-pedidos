@@ -18,7 +18,7 @@ function fechaLocalISO(d){
 }
 
 // ---------- Persistencia del catálogo ----------
-// v0.9.9: catalogo unificado - junta las 3 claves que uso la app en el tiempo
+// v1.0.0: catalogo unificado - junta las 3 claves que uso la app en el tiempo
 // catalogo_verduleria (principal) + castillo_catalogo (Productos) + catalogo (vieja)
 // Sin esto, un producto agregado en Productos no lo veia el parser.
 function leerListaCatalogo(clave){
@@ -64,7 +64,7 @@ function cargarConfig(){
   const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
   const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
   const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
-  // logo ya manejado arriba con guard (v0.9.9)
+  // logo ya manejado arriba con guard (v1.0.0)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
@@ -173,7 +173,7 @@ function abonarDeuda(i){
 function renderClientes(){
   const cont = document.getElementById('clientesLista');
   const _cc = document.getElementById('cliCount'); if(_cc) _cc.textContent = clientes.length;
-  if(!cont) return; // v0.9.9: Clientes manual ya no existe, no tumbar app.js
+  if(!cont) return; // v1.0.0: Clientes manual ya no existe, no tumbar app.js
   if(clientes.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas clientes.</p>';
     return;
@@ -261,7 +261,7 @@ function registrarVenta(pedido){
 }
 function renderReporte(){
   const fechaEl = document.getElementById('reporteFecha');
-  if(!fechaEl) return; // v0.9.9 guard
+  if(!fechaEl) return; // v1.0.0 guard
   const dia = fechaEl.value || fechaLocalISO();
   const ventasDia = ventasLog.filter(v => v.diaISO === dia);
   const totalVendido = ventasDia.reduce((a, v) => a + v.total, 0);
@@ -777,7 +777,7 @@ function parsearTexto(texto){
       if(item){
         items.push(item);
       } else {
-        // v0.9.9: no se pierde - queda para mostrar Usar / Agregar como nuevo
+        // v1.0.0: no se pierde - queda para mostrar Usar / Agregar como nuevo
         const nombreNo = (parsed.producto || '').trim();
         if(nombreNo){
           if(!window._noReconocidosV097) window._noReconocidosV097 = [];
@@ -867,6 +867,8 @@ function agregarPedidoALaHoja(){
     // Actualiza un pedido ya existente en la hoja (no vuelve a registrar venta ni fiado)
     pedidosPendientes[editingIndex].cliente = cliente;
     pedidosPendientes[editingIndex].items = JSON.parse(JSON.stringify(items));
+    // v1.0.0: al editar, guardar tambien el telefono y mantener la fecha original de emision
+    try{ const telEd = document.getElementById('telefonoInput') ? document.getElementById('telefonoInput').value.trim() : ''; if(telEd) pedidosPendientes[editingIndex].telefono = telEd; }catch(e){}
     editingIndex = null;
     document.getElementById('btnCancelarEdicion').style.display = 'none';
     statusEl.innerHTML = '<div class="status-msg ok">Pedido actualizado.</div>';
@@ -1002,19 +1004,53 @@ function generarWord(){
 
 function generarWordDesdeLista(lista){
   if(!lista || lista.length === 0) return;
-  const fecha = new Date().toLocaleDateString('es-CL');
+  const fechaGen = new Date();
+  const fecha = fechaGen.toLocaleDateString('es-CL');
+  const horaGen = fechaGen.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
   const porHoja = config.pedidosPorHoja || 3;
 
   const chunks = [];
   for(let i=0;i<lista.length;i+=porHoja) chunks.push(lista.slice(i,i+porHoja));
 
   const fontSize = porHoja >= 4 ? '10.5px' : (porHoja <= 2 ? '13px' : '12px');
-  // Encabezado (logo + nombre/info del negocio) eliminado a propósito: ocupa
-  // espacio y no es necesario, así entran más pedidos por hoja al imprimir.
+  const nombreNeg = (config && config.nombreNegocio ? config.nombreNegocio : 'El Castillo de la Fruta') || 'El Castillo de la Fruta';
+  const infoNeg = (config && config.infoNegocio ? config.infoNegocio : '') || '';
+  // v1.0.0: logo - si el usuario subio uno en Config, config.logo ya es data URL y se incrusta bien en Word.
+  // Si no hay logo subido, usamos el logo por defecto del proyecto.
+  const logoSrc = (config && config.logo) ? config.logo : 'img/logo.png';
+  const logoHtml = (config && config.logo)
+    ? `<img src="${logoSrc}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #fff;">`
+    : `<img src="${logoSrc}" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #fff;">`;
+
+  function fechaPedidoStr(p){
+    try{
+      if(p && p.fecha){ const d = new Date(p.fecha); if(!isNaN(d)) return d.toLocaleDateString('es-CL') + ' ' + d.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}); }
+      if(p && p.diaISO){ const parts = String(p.diaISO).split('-'); if(parts.length===3) return parts[2] + '-' + parts[1] + '-' + parts[0]; }
+    }catch(e){}
+    return fecha + ' ' + horaGen;
+  }
 
   let bodyHtml = '';
   chunks.forEach((chunk, ci) => {
+    const totalHojaD = chunk.reduce((a,p)=> a + (p.items||[]).reduce((b,it)=> b + (it.precio||0), 0), 0);
+    const totalHojaKg = chunk.reduce((a,p)=> a + (p.items||[]).filter(it=>it.unidad==='kg').reduce((b,it)=> b + it.cantidad, 0), 0);
+    // Encabezado de la hoja - logo + nombre + fecha - se repite en cada hoja impresa
     bodyHtml += `<div style="${ci>0?'page-break-before:always;':''}">`;
+    bodyHtml += `
+      <table style="width:100%;border-collapse:collapse;margin-bottom:10px;background:#2F5233;color:#fff;">
+        <tr>
+          <td style="width:62px;padding:8px 6px 8px 10px;vertical-align:middle;">${logoHtml}</td>
+          <td style="padding:8px 6px;vertical-align:middle;">
+            <div style="font-size:18px;font-weight:900;line-height:1.1;">${escapeHtml(nombreNeg)}</div>
+            ${infoNeg ? `<div style="font-size:11px;opacity:.9;line-height:1.2;">${escapeHtml(infoNeg)}</div>` : `<div style="font-size:11px;opacity:.9;">Verduleria - Pedidos del dia</div>`}
+          </td>
+          <td style="padding:8px 10px 8px 6px;text-align:right;vertical-align:middle;">
+            <div style="font-size:12px;font-weight:700;">Hoja ${ci+1} de ${chunks.length}</div>
+            <div style="font-size:11px;">Generada ${fecha} ${horaGen}</div>
+            <div style="font-size:11px;">${chunk.length} pedido(s) en esta hoja</div>
+          </td>
+        </tr>
+      </table>`;
     chunk.forEach(pedido => {
       const totK = pedido.items.filter(it=>it.unidad==='kg').reduce((a,it)=>a+it.cantidad,0);
       const totG = pedido.items.filter(it=>it.unidad==='g').reduce((a,it)=>a+it.cantidad,0);
@@ -1025,11 +1061,13 @@ function generarWordDesdeLista(lista){
       if(totG>0) totalTxt.push(totG.toLocaleString('es-CL')+' g');
       if(totU>0) totalTxt.push(totU.toLocaleString('es-CL')+' unidades');
       if(totD>0) totalTxt.push('$'+Math.round(totD).toLocaleString('es-CL'));
-      const fiadoTxt = pedido.fiado ? ' (FIADO)' : '';
-
+      const fiadoTxt = pedido.fiado ? ' &nbsp; <span style="background:#F59E0B;color:#fff;padding:2px 8px;border-radius:999px;font-size:10px;">FIADO</span>' : '';
+      const fechaEmision = fechaPedidoStr(pedido);
+      const telTxt = pedido.telefono ? ` &nbsp;|&nbsp; Tel: ${escapeHtml(pedido.telefono)}` : '';
       bodyHtml += `
         <table class="pedido-tabla">
           <tr><td colspan="4" class="cliente-cell">Cliente: ${escapeHtml(pedido.cliente)}${fiadoTxt}</td></tr>
+          <tr><td colspan="4" style="background:#F7F4EA;font-size:11px;padding:4px 8px;border:1px solid #6B9362;border-top:0;">Pedido emitido: <b>${fechaEmision}</b>${telTxt}</td></tr>
           <tr class="header-row"><th>Producto</th><th>Cantidad</th><th>Unidad</th><th>Subtotal</th></tr>
           ${pedido.items.map(it => `<tr><td>${escapeHtml(it.producto)}</td><td>${it.cantidad}</td><td>${it.unidad}</td><td>${it.precio>0 ? '$'+Math.round(it.precio).toLocaleString('es-CL') : '-'}</td></tr>`).join('')}
           <tr class="total-row"><td colspan="4">Total: ${totalTxt.join(' | ') || '-'}</td></tr>
@@ -1037,13 +1075,16 @@ function generarWordDesdeLista(lista){
         <div style="height:14px;"></div>
       `;
     });
+    // Pie de hoja
+    bodyHtml += `<div style="border-top:1px dashed #6B9362;padding-top:6px;font-size:11px;color:#555;display:flex;justify-content:space-between;"><span>${chunk.length} pedido(s) en esta hoja ${totalHojaKg>0 ? '&nbsp;|&nbsp; '+totalHojaKg.toLocaleString('es-CL')+' kg' : ''}</span><span><b>Total hoja: $${Math.round(totalHojaD).toLocaleString('es-CL')}</b></span></div>`;
+    bodyHtml += `<div style="text-align:center;font-size:10px;color:#888;margin-top:6px;">${escapeHtml(nombreNeg)} - Gracias por su compra - Revisa tu pedido antes de salir</div>`;
     bodyHtml += `</div>`;
   });
 
   const fullHtml = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-  <head><meta charset="utf-8"><title>Pedidos</title>
+  <head><meta charset="utf-8"><title>Pedidos - ${escapeHtml(nombreNeg)}</title>
   <style>
-    @page{size:A4;margin:14mm;}
+    @page{size:A4;margin:12mm;}
     body{font-family:Calibri,Arial,sans-serif;font-size:${fontSize};color:#222;}
     table.pedido-tabla{width:100%;border-collapse:collapse;margin-bottom:6px;border:1.5px solid #2F5233;}
     table.pedido-tabla td, table.pedido-tabla th{border:1px solid #6B9362;padding:4px 6px;}
@@ -1052,7 +1093,6 @@ function generarWordDesdeLista(lista){
     .total-row td{font-weight:bold;background:#F7F4EA;}
   </style></head>
   <body>
-  <p style="text-align:right;font-size:10px;color:#777;">Generado ${fecha}</p>
   ${bodyHtml}
   </body></html>`;
 
@@ -1066,9 +1106,8 @@ function generarWordDesdeLista(lista){
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 
-  document.getElementById('statusMsg').innerHTML = '<div class="status-msg ok">Documento generado y descargado.</div>';
+  document.getElementById('statusMsg').innerHTML = '<div class="status-msg ok">Documento generado y descargado con logo, fecha por pedido y totales por hoja.</div>';
 }
-
 
 // ================= v0.5.0 SEGURIDAD WEB =================
 // Bug: CSP script-src 'self' bloquea handlers inline (onclick="..."). Por eso Analizar no hacia nada en GitHub Pages y si en Netlify (sin CSP).
@@ -1149,7 +1188,7 @@ function cablearEventosEstaticos(){
   }
 }
 // ================= FIN v0.5.0 =================
-// init v0.9.9: cada paso en try/catch, un render fallido no tumba el resto
+// init v1.0.0: cada paso en try/catch, un render fallido no tumba el resto
 try{ cablearEventosEstaticos(); }catch(e){ console.error('init cablear', e); }
 try{ cargarConfig(); }catch(e){ console.error('init cargarConfig', e); }
 try{ cargarCatalogo(); }catch(e){ console.error('init cargarCatalogo', e); }
@@ -1166,7 +1205,7 @@ try{ renderReporte(); }catch(e){ console.error('init renderReporte', e); }
 // 5) pesar y poner valor 6) Generar Word para imprimir y corchetear en la caja
 // 7) NUEVO: Compartir por WhatsApp - genera texto listo para enviar al cliente:
 // "Hola {cliente}, tu pedido en El Castillo: - 2 kg Tomate $... Total $... Revisa tu hoja impresa en la caja. Gracias!"
-// v0.9.9: WhatsApp al cliente desde la hoja
+// v1.0.0: WhatsApp al cliente desde la hoja
 function normalizarTelefonoChile(tel){
   if(!tel) return '';
   let t = String(tel).replace(/[^0-9+]/g,'');
@@ -1231,7 +1270,7 @@ function construirMensajeWhatsApp(){
   }
   return null;
 }
-// v0.9.9: enviar SOLO un pedido a SU cliente
+// v1.0.0: enviar SOLO un pedido a SU cliente
 function construirMensajeWhatsAppPedido(p){
   if(!p) return null;
   const lineas = (p.items || []).map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
@@ -1318,7 +1357,7 @@ function agruparAccionesPrincipales(){
   }
 }
 // Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){ return; /* v0.9.9: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
+function initBottomNav(){ return; /* v1.0.0: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
 function actualizarCarrito(){
   const el = document.getElementById('cartCount');
   if(!el) return;
@@ -1329,7 +1368,7 @@ function actualizarCarrito(){
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
 
-// v0.8.1 bottom nav DESACTIVADO en v0.9.9 - lo maneja showTab, el viejo solo hacia scroll
+// v0.8.1 bottom nav DESACTIVADO en v1.0.0 - lo maneja showTab, el viejo solo hacia scroll
 (function(){ return; })();
 
 // ================= v0.9.1 Tabs independientes =================
@@ -1371,7 +1410,7 @@ function initTabsV091(){
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v0.9.9 CORREGIDA: productos nuevos + clientes automaticos =================
+// ================= v1.0.0 CORREGIDA: productos nuevos + clientes automaticos =================
 // Negocio fijo - ya no se edita
 const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
 function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
@@ -1411,7 +1450,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
   const old = document.getElementById('avisoNoReconocidos'); if(old) old.remove();
   wrap.prepend(div);
   div.querySelectorAll('[data-agregar-nuevo]').forEach(function(b){ b.addEventListener('click', function(){
-    // v0.9.9: crea el producto altiro y re-analiza, sin perder cantidad/unidad
+    // v1.0.0: crea el producto altiro y re-analiza, sin perder cantidad/unidad
     const nombre = b.dataset.agregarNuevo; const cant = parseFloat(b.dataset.cantidad || '1') || 1; const uni = b.dataset.unidad || 'kg';
     try{
       const lista = obtenerCatalogoUnificado();
@@ -1425,7 +1464,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
     const st = document.getElementById('statusMsg'); if(st) st.innerHTML = '<div class="status-msg ok">\u2705 ' + escapeHtml(nombre) + ' agregado. Ya aparece en la revisi\u00f3n.</div>';
   }); });
   div.querySelectorAll('[data-corregir-a]').forEach(function(b){ b.addEventListener('click', function(){
-    // v0.9.9 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
+    // v1.0.0 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
     const ta = document.getElementById('textoInput');
     if(ta){ ta.value = ta.value.split(b.dataset.corregirDe).join(b.dataset.corregirA); const btn = document.getElementById('btnAnalizarPedido'); if(btn) btn.click(); }
   }); });
@@ -1446,7 +1485,7 @@ function initAgregarProductoNuevo(){
     let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
     if(cat.some(p=> normTxt(p.nombre||p.name)==normTxt(nombre))){ msg.textContent='Ese producto ya está en la lista.'; msg.style.color='#B91C1C'; return; }
     cat.push({ nombre, name:nombre, unidad, precio, alias });
-    // v0.9.9: guardar en las 3 claves + memoria para que el parser lo vea altiro
+    // v1.0.0: guardar en las 3 claves + memoria para que el parser lo vea altiro
     try{ guardarCatalogoUnificado(cat); }catch(e){ localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); try{ localStorage.setItem('catalogo', JSON.stringify(cat)); }catch(e2){} }
     msg.textContent = `✅ ${nombre} agregado. Ya lo puedes usar en el próximo pedido.`; msg.style.color='#14532D';
     document.getElementById('nuevoProdNombre').value=''; document.getElementById('nuevoProdPrecio').value=''; document.getElementById('nuevoProdAlias').value='';
