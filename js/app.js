@@ -18,7 +18,7 @@ function fechaLocalISO(d){
 }
 
 // ---------- Persistencia del catálogo ----------
-// v1.0.5: catalogo unificado - junta las 3 claves que uso la app en el tiempo
+// v1.0.6: catalogo unificado - junta las 3 claves que uso la app en el tiempo
 // catalogo_verduleria (principal) + castillo_catalogo (Productos) + catalogo (vieja)
 // Sin esto, un producto agregado en Productos no lo veia el parser.
 function leerListaCatalogo(clave){
@@ -64,7 +64,7 @@ function cargarConfig(){
   const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
   const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
   const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
-  // logo ya manejado arriba con guard (v1.0.5)
+  // logo ya manejado arriba con guard (v1.0.6)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
@@ -173,7 +173,7 @@ function abonarDeuda(i){
 function renderClientes(){
   const cont = document.getElementById('clientesLista');
   const _cc = document.getElementById('cliCount'); if(_cc) _cc.textContent = clientes.length;
-  if(!cont) return; // v1.0.5: Clientes manual ya no existe, no tumbar app.js
+  if(!cont) return; // v1.0.6: Clientes manual ya no existe, no tumbar app.js
   if(clientes.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas clientes.</p>';
     return;
@@ -261,7 +261,7 @@ function registrarVenta(pedido){
 }
 function renderReporte(){
   const fechaEl = document.getElementById('reporteFecha');
-  if(!fechaEl) return; // v1.0.5 guard
+  if(!fechaEl) return; // v1.0.6 guard
   const dia = fechaEl.value || fechaLocalISO();
   const ventasDia = ventasLog.filter(v => v.diaISO === dia);
   const totalVendido = ventasDia.reduce((a, v) => a + v.total, 0);
@@ -777,7 +777,7 @@ function parsearTexto(texto){
       if(item){
         items.push(item);
       } else {
-        // v1.0.5: no se pierde - queda para mostrar Usar / Agregar como nuevo
+        // v1.0.6: no se pierde - queda para mostrar Usar / Agregar como nuevo
         const nombreNo = (parsed.producto || '').trim();
         if(nombreNo){
           if(!window._noReconocidosV097) window._noReconocidosV097 = [];
@@ -867,7 +867,7 @@ function agregarPedidoALaHoja(){
     // Actualiza un pedido ya existente en la hoja (no vuelve a registrar venta ni fiado)
     pedidosPendientes[editingIndex].cliente = cliente;
     pedidosPendientes[editingIndex].items = JSON.parse(JSON.stringify(items));
-    // v1.0.5: al editar, guardar tambien el telefono y mantener la fecha original de emision
+    // v1.0.6: al editar, guardar tambien el telefono y mantener la fecha original de emision
     try{ const telEd = document.getElementById('telefonoInput') ? document.getElementById('telefonoInput').value.trim() : ''; if(telEd) pedidosPendientes[editingIndex].telefono = telEd; }catch(e){}
     editingIndex = null;
     document.getElementById('btnCancelarEdicion').style.display = 'none';
@@ -1016,6 +1016,7 @@ function construirHtmlHoja(lista){
   const infoNeg = (config && config.infoNegocio ? config.infoNegocio : '') || '';
   const logoSrc = (config && config.logo) ? config.logo : 'https://el-castillo-pedidos-ab575.web.app/img/logo.png';
   const logoHtml = `<img src="${logoSrc}" onerror="this.style.display='none'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #fff;">`;
+  const logoHtmlPedido = `<img src="${logoSrc}" onerror="this.style.display='none'" style="width:38px;height:38px;border-radius:50%;object-fit:cover;border:2px solid #fff;vertical-align:middle;">`;
   function fechaPedidoStr(p){
     try{
       if(p && p.fecha){ const d = new Date(p.fecha); if(!isNaN(d)) return d.toLocaleDateString('es-CL') + ' ' + d.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}); }
@@ -1058,7 +1059,7 @@ function construirHtmlHoja(lista){
       const telTxt = pedido.telefono ? ` &nbsp;|&nbsp; Tel: ${escapeHtml(pedido.telefono)}` : '';
       bodyHtml += `
         <table class="pedido-tabla">
-          <tr><td colspan="4" class="cliente-cell">Cliente: ${escapeHtml(pedido.cliente)}${fiadoTxt}</td></tr>
+          <tr><td style="width:46px;background:#2F5233;padding:3px;text-align:center;vertical-align:middle;border:1px solid #2F5233;">${logoHtmlPedido}</td><td colspan="3" class="cliente-cell">Cliente: ${escapeHtml(pedido.cliente)}${fiadoTxt}</td></tr>
           <tr><td colspan="4" style="background:#F7F4EA;font-size:11px;padding:4px 8px;border:1px solid #6B9362;border-top:0;">Pedido emitido: <b>${fechaEmision}</b>${telTxt}</td></tr>
           <tr class="header-row"><th>Producto</th><th>Cantidad</th><th>Unidad</th><th>Subtotal</th></tr>
           ${pedido.items.map(it => `<tr><td>${escapeHtml(it.producto)}</td><td>${it.cantidad}</td><td>${it.unidad}</td><td>${it.precio>0 ? '$'+Math.round(it.precio).toLocaleString('es-CL') : '-'}</td></tr>`).join('')}
@@ -1103,7 +1104,7 @@ function generarWordDesdeLista(lista){
   URL.revokeObjectURL(url);
   document.getElementById('statusMsg').innerHTML = '<div class="status-msg ok">Hoja lista para Imprimir / Guardar como PDF. Ya no se descarga .doc porque iPhone lo marcaba como danado.</div>';
 }
-// v1.0.5: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
+// v1.0.6: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
 function descargarHoja(){
   var st = document.getElementById('statusMsg');
   var n = (pedidosPendientes && pedidosPendientes.length) ? pedidosPendientes.length : 0;
@@ -1116,7 +1117,7 @@ function descargarHoja(){
     if(st) st.innerHTML = '<div class="status-msg warn">No se pudo armar la hoja.</div>';
     return;
   }
-  // v1.0.5: Descarga directa REAL. No es .doc falso (HTML con nombre .doc = iPhone dice danado).
+  // v1.0.6: Descarga directa REAL. No es .doc falso (HTML con nombre .doc = iPhone dice danado).
   // Es .html, que es lo que realmente es la hoja. iPhone lo previsualiza y lo abre en Safari sin error.
   // Nombre: pedidos_16-11-2026.html - se guarda en Archivos > Descargas y se puede compartir por WhatsApp.
   var blob = new Blob(['\ufeff', built.html], {type: 'text/html;charset=utf-8'});
@@ -1249,7 +1250,7 @@ function cablearEventosEstaticos(){
   }
 }
 // ================= FIN v0.5.0 =================
-// init v1.0.5: cada paso en try/catch, un render fallido no tumba el resto
+// init v1.0.6: cada paso en try/catch, un render fallido no tumba el resto
 try{ cablearEventosEstaticos(); }catch(e){ console.error('init cablear', e); }
 try{ cargarConfig(); }catch(e){ console.error('init cargarConfig', e); }
 try{ cargarCatalogo(); }catch(e){ console.error('init cargarCatalogo', e); }
@@ -1266,7 +1267,7 @@ try{ renderReporte(); }catch(e){ console.error('init renderReporte', e); }
 // 5) pesar y poner valor 6) Generar Word para imprimir y corchetear en la caja
 // 7) NUEVO: Compartir por WhatsApp - genera texto listo para enviar al cliente:
 // "Hola {cliente}, tu pedido en El Castillo: - 2 kg Tomate $... Total $... Revisa tu hoja impresa en la caja. Gracias!"
-// v1.0.5: WhatsApp al cliente desde la hoja
+// v1.0.6: WhatsApp al cliente desde la hoja
 function normalizarTelefonoChile(tel){
   if(!tel) return '';
   let t = String(tel).replace(/[^0-9+]/g,'');
@@ -1331,7 +1332,7 @@ function construirMensajeWhatsApp(){
   }
   return null;
 }
-// v1.0.5: enviar SOLO un pedido a SU cliente
+// v1.0.6: enviar SOLO un pedido a SU cliente
 function construirMensajeWhatsAppPedido(p){
   if(!p) return null;
   const lineas = (p.items || []).map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
@@ -1418,7 +1419,7 @@ function agruparAccionesPrincipales(){
   }
 }
 // Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){ return; /* v1.0.5: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
+function initBottomNav(){ return; /* v1.0.6: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
 function actualizarCarrito(){
   const el = document.getElementById('cartCount');
   if(!el) return;
@@ -1429,7 +1430,7 @@ function actualizarCarrito(){
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
 
-// v0.8.1 bottom nav DESACTIVADO en v1.0.5 - lo maneja showTab, el viejo solo hacia scroll
+// v0.8.1 bottom nav DESACTIVADO en v1.0.6 - lo maneja showTab, el viejo solo hacia scroll
 (function(){ return; })();
 
 // ================= v0.9.1 Tabs independientes =================
@@ -1471,7 +1472,7 @@ function initTabsV091(){
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v1.0.5 CORREGIDA: productos nuevos + clientes automaticos =================
+// ================= v1.0.6 CORREGIDA: productos nuevos + clientes automaticos =================
 // Negocio fijo - ya no se edita
 const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
 function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
@@ -1511,7 +1512,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
   const old = document.getElementById('avisoNoReconocidos'); if(old) old.remove();
   wrap.prepend(div);
   div.querySelectorAll('[data-agregar-nuevo]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.5: crea el producto altiro y re-analiza, sin perder cantidad/unidad
+    // v1.0.6: crea el producto altiro y re-analiza, sin perder cantidad/unidad
     const nombre = b.dataset.agregarNuevo; const cant = parseFloat(b.dataset.cantidad || '1') || 1; const uni = b.dataset.unidad || 'kg';
     try{
       const lista = obtenerCatalogoUnificado();
@@ -1525,7 +1526,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
     const st = document.getElementById('statusMsg'); if(st) st.innerHTML = '<div class="status-msg ok">\u2705 ' + escapeHtml(nombre) + ' agregado. Ya aparece en la revisi\u00f3n.</div>';
   }); });
   div.querySelectorAll('[data-corregir-a]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.5 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
+    // v1.0.6 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
     const ta = document.getElementById('textoInput');
     if(ta){ ta.value = ta.value.split(b.dataset.corregirDe).join(b.dataset.corregirA); const btn = document.getElementById('btnAnalizarPedido'); if(btn) btn.click(); }
   }); });
@@ -1546,7 +1547,7 @@ function initAgregarProductoNuevo(){
     let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
     if(cat.some(p=> normTxt(p.nombre||p.name)==normTxt(nombre))){ msg.textContent='Ese producto ya está en la lista.'; msg.style.color='#B91C1C'; return; }
     cat.push({ nombre, name:nombre, unidad, precio, alias });
-    // v1.0.5: guardar en las 3 claves + memoria para que el parser lo vea altiro
+    // v1.0.6: guardar en las 3 claves + memoria para que el parser lo vea altiro
     try{ guardarCatalogoUnificado(cat); }catch(e){ localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); try{ localStorage.setItem('catalogo', JSON.stringify(cat)); }catch(e2){} }
     msg.textContent = `✅ ${nombre} agregado. Ya lo puedes usar en el próximo pedido.`; msg.style.color='#14532D';
     document.getElementById('nuevoProdNombre').value=''; document.getElementById('nuevoProdPrecio').value=''; document.getElementById('nuevoProdAlias').value='';
