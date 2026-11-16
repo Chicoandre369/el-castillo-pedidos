@@ -1250,7 +1250,7 @@ setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
   });
 })();
 
-// ================= v0.9.0 Tabs independientes =================
+// ================= v0.9.1 Tabs independientes =================
 function showTab(tab){
   document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
   const page = document.getElementById('tab-'+tab);
@@ -1266,7 +1266,7 @@ function showTab(tab){
   if(tab==='estadisticas' && typeof renderReporte==='function') renderReporte();
   if(tab==='pedidos' && typeof renderPedidosPendientes==='function') renderPedidosPendientes();
 }
-function initTabsV090(){
+function initTabsV091(){
   document.querySelectorAll('.nav-item').forEach(b=>{
     b.addEventListener('click', ()=> showTab(b.dataset.nav));
   });
@@ -1286,4 +1286,4 @@ function initTabsV090(){
   if(!['inicio','pedidos','estadisticas','config'].includes(saved)) saved='inicio';
   showTab(saved);
 }
-document.addEventListener('DOMContentLoaded', initTabsV090);
+document.addEventListener('DOMContentLoaded', initTabsV091);
