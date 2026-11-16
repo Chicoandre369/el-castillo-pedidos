@@ -45,7 +45,7 @@ function cargarConfig(){
   const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
   const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
   const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
-  // logo ya manejado arriba con guard (v0.9.5)
+  // logo ya manejado arriba con guard (v0.9.6)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
@@ -114,6 +114,7 @@ function buscarCliente(nombre){
   return clientes.find(c => normalizarTexto(c.nombre) === n);
 }
 function renderClientesDatalist(){
+  const _dl = document.getElementById('clientesDatalist'); if(!_dl && !document.getElementById('clienteInput')) return;
   const dl = document.getElementById('clientesDatalist');
   if(dl) dl.innerHTML = clientes.map(c => `<option value="${escapeHtml(c.nombre)}">`).join('');
 }
@@ -152,7 +153,8 @@ function abonarDeuda(i){
 }
 function renderClientes(){
   const cont = document.getElementById('clientesLista');
-  document.getElementById('cliCount').textContent = clientes.length;
+  const _cc = document.getElementById('cliCount'); if(_cc) _cc.textContent = clientes.length;
+  if(!cont) return; // v0.9.6: Clientes manual ya no existe, no tumbar app.js
   if(clientes.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas clientes.</p>';
     return;
@@ -240,11 +242,12 @@ function registrarVenta(pedido){
 }
 function renderReporte(){
   const fechaEl = document.getElementById('reporteFecha');
+  if(!fechaEl) return; // v0.9.6 guard
   const dia = fechaEl.value || fechaLocalISO();
   const ventasDia = ventasLog.filter(v => v.diaISO === dia);
   const totalVendido = ventasDia.reduce((a, v) => a + v.total, 0);
 
-  document.getElementById('reporteResumen').innerHTML = `
+  const _rr = document.getElementById('reporteResumen'); if(_rr) _rr.innerHTML = `
     <div class="totales">
       <span><b>${ventasDia.length}</b> pedido(s)</span>
       <span><b>$${Math.round(totalVendido).toLocaleString('es-CL')}</b> vendido</span>
@@ -257,6 +260,7 @@ function renderReporte(){
   }));
   const top = Object.entries(conteo).sort((a, b) => b[1] - a[1]).slice(0, 8);
   const cont = document.getElementById('reporteTop');
+  if(!cont) return;
   if(top.length === 0){
     cont.innerHTML = '<p class="empty-hint">Sin ventas registradas ese día.</p>';
   } else {
@@ -1111,17 +1115,17 @@ function cablearEventosEstaticos(){
   }
 }
 // ================= FIN v0.5.0 =================
-// init
-cablearEventosEstaticos();
-cargarConfig();
-cargarCatalogo();
-cargarClientes();
-cargarPedidosPendientes();
-renderPedidosPendientes();
-cargarHistorial();
-cargarVentasLog();
+// init v0.9.6: cada paso en try/catch, un render fallido no tumba el resto
+try{ cablearEventosEstaticos(); }catch(e){ console.error('init cablear', e); }
+try{ cargarConfig(); }catch(e){ console.error('init cargarConfig', e); }
+try{ cargarCatalogo(); }catch(e){ console.error('init cargarCatalogo', e); }
+try{ cargarClientes(); }catch(e){ console.error('init cargarClientes', e); }
+try{ cargarPedidosPendientes(); }catch(e){ console.error('init cargarPedidos', e); }
+try{ renderPedidosPendientes(); }catch(e){ console.error('init renderPedidos', e); }
+try{ cargarHistorial(); }catch(e){ console.error('init cargarHistorial', e); }
+try{ cargarVentasLog(); }catch(e){ console.error('init cargarVentas', e); }
 const _rf = document.getElementById('reporteFecha'); if(_rf) _rf.value = fechaLocalISO();
-renderReporte();
+try{ renderReporte(); }catch(e){ console.error('init renderReporte', e); }
 
 // ================= v0.7.0 - Compartir por WhatsApp =================
 // Flujo local: 1) llega pedido a WhatsApp 2) copiar 3) pegar en app anclada 4) Analizar
@@ -1204,7 +1208,7 @@ function agruparAccionesPrincipales(){
   }
 }
 // Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){ return; /* v0.9.5: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
+function initBottomNav(){ return; /* v0.9.6: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
 function actualizarCarrito(){
   const el = document.getElementById('cartCount');
   if(!el) return;
@@ -1215,7 +1219,7 @@ function actualizarCarrito(){
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
 
-// v0.8.1 bottom nav DESACTIVADO en v0.9.5 - lo maneja showTab, el viejo solo hacia scroll
+// v0.8.1 bottom nav DESACTIVADO en v0.9.6 - lo maneja showTab, el viejo solo hacia scroll
 (function(){ return; })();
 
 // ================= v0.9.1 Tabs independientes =================
@@ -1257,7 +1261,7 @@ function initTabsV091(){
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v0.9.5 CORREGIDA: productos nuevos + clientes automaticos =================
+// ================= v0.9.6 CORREGIDA: productos nuevos + clientes automaticos =================
 // Negocio fijo - ya no se edita
 const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
 function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
