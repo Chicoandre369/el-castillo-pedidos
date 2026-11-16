@@ -1,180 +1,68 @@
-<!-- El Castillo v0.7.0 - Diseno Prototipo + WhatsApp - Seguridad web completa --> - Estructura separada. CSS en css/styles.css, JS en js/app.js -->
 <!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hoja de Pedidos | El Castillo de la Fruta</title>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'">
-<meta name="referrer" content="no-referrer">
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>El Castillo de la Fruta - Pedidos</title>
 <link rel="stylesheet" href="css/styles.css">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0F2E1A">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
-
-</head>
-<body>
-<header class="app-header">
-  <div class="header-main">
-    <img src="img/logo.png" alt="El Castillo de la Fruta" class="header-logo">
-    <div class="header-title"><span class="ht-1">El Castillo</span><span class="ht-2">de la Fruta</span><span class="header-badge">Vista Dueños</span></div>
-    <button type="button" class="cart-btn" id="btnCarrito" aria-label="Pedidos en hoja"><span class="cart-icon">🛒</span><span class="cart-count" id="cartCount">1</span></button>
+</head><body>
+<header class="app-header" style="background:#fff;border-bottom:1px solid #E8EDE9;position:sticky;top:0;z-index:20;padding:10px 14px;">
+  <div style="display:flex;align-items:center;gap:12px;max-width:520px;margin:0 auto;">
+    <img src="img/logo.png" alt="El Castillo de la Fruta" style="width:54px;height:54px;min-width:54px;min-height:54px;max-width:54px;max-height:54px;border-radius:50%;object-fit:cover;border:2px solid #E8F5E9;display:block;">
+    <div style="flex:1;line-height:1.05;"><div style="font-weight:900;font-size:22px;color:#0F2E1A;letter-spacing:-.02em;">El Castillo</div><div style="font-weight:800;font-size:20px;color:#5A9A3A;">de la Fruta</div><span style="display:inline-block;margin-top:4px;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:3px 7px;border-radius:999px;">Vista Dueños</span></div>
+    <button type="button" id="btnCarrito" aria-label="Pedidos" style="position:relative;width:48px;height:48px;border-radius:50%;border:0;background:#F0FDF4;cursor:pointer;font-size:22px;">🛒<span id="cartCount" style="position:absolute;top:-2px;right:-2px;background:#14532D;color:#fff;font-size:11px;font-weight:800;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">1</span></button>
   </div>
 </header>
-<div class="wrap">
-<p class="sub">Pega el pedido de WhatsApp, pesa, pon el valor y genera la hoja.</p>
-
-
-
-
-<main>
-
-  <!-- DATOS DEL NEGOCIO -->
-  <section>
-    <details id="negocioDetails">
-      <summary>Datos del negocio (para la impresión)</summary>
-      <label for="negNombre">Nombre del negocio</label>
-      <input type="text" id="negNombre" placeholder="ej: El Castillo de la Fruta">
-      <label for="negInfo">Dirección / teléfono / info adicional</label>
-      <input type="text" id="negInfo" placeholder="ej: Av. Siempre Viva 123 · +56 9 1234 5678">
-      <label for="negLogo">Logo del negocio (aparece en el Word)</label>
-      <input type="file" id="negLogo" accept="image/*">
-      <img id="logoPreview" class="logo-preview" src="" alt="Logo">
-      <div class="config-row">
-        <button class="btn-ghost btn-small" id="btnQuitarLogo">Quitar logo</button>
-      </div>
-      <label for="pedidosPorHojaSelect">Pedidos por hoja de Word</label>
-      <select id="pedidosPorHojaSelect">
-        <option value="2">2 por hoja</option>
-        <option value="3">3 por hoja</option>
-        <option value="4">4 por hoja</option>
-      </select>
-      <p class="empty-hint">Menos pedidos por hoja = letra más grande. Más pedidos por hoja = ahorras más papel.</p>
-    </details>
-  </section>
-
-  </div>
-  <section>
-    <details id="catalogoDetails">
-      <summary>Catálogo de productos <span class="count-badge" id="catCount">0</span></summary>
-      <label for="catBuscar" style="margin-top:0;">Buscar en el catálogo</label>
-      <input type="text" id="catBuscar" placeholder="Escribe para filtrar...">
-      <div id="catalogoLista"></div>
-      <div class="col-labels" id="catalogoAddLabels" style="grid-template-columns:1fr 78px 70px auto;">
-        <span>Producto</span><span>Unidad</span><span>Precio</span><span></span>
-      </div>
-      <div class="catalogo-add">
-        <input type="text" id="catNombre" placeholder="ej: Tomate">
-        <select id="catUnidad">
-          <option value="kg">kg</option>
-          <option value="g">g</option>
-          <option value="unidad">unidad</option>
-          <option value="oferta">OFERTA</option>
-        </select>
-        <input type="number" id="catPrecio" placeholder="$/kg o c/u">
-        <button class="btn-secondary btn-small" id="btnAgregarProductoCatalogo">+ Agregar</button>
-      </div>
-      <p class="empty-hint">El precio y la unidad por defecto se usan para completar automáticamente los pedidos que pegues abajo.</p>
-      <p class="empty-hint"><b>Regla de pedidos:</b> si escribes una cantidad sin indicar kg/g/unidad, se interpreta como unidades. Si no escribes cantidad, se usa la unidad habitual del producto. Una unidad escrita explícitamente por el cliente siempre tiene prioridad.</p>
-      <div class="config-row">
-        <button class="btn-secondary btn-small" id="btnExportarCatalogoCSV">⬇ Exportar catálogo (Excel/CSV)</button>
-        <button class="btn-secondary btn-small" id="btnExportarBaseDatosCSV">⬇ Exportar base de datos (Excel/CSV)</button>
-      </div>
-    </details>
-  </section>
-
-  </div>
-  <section>
-    <details id="clientesDetails">
-      <summary>Clientes <span class="count-badge" id="cliCount">0</span></summary>
-      <div id="clientesLista"></div>
-      <div class="form-grid-3">
-        <input type="text" id="cliNombre" placeholder="Nombre cliente">
-        <input type="text" id="cliDireccion" placeholder="Dirección (opcional)">
-        <input type="text" id="cliTelefono" placeholder="Teléfono (opcional)">
-      </div>
-      <button class="btn-secondary btn-small" style="margin-top:8px;" id="btnAgregarCliente">+ Agregar / actualizar cliente</button>
-      <p class="empty-hint">Al escribir un nombre de cliente en "Nuevo pedido" se sugerirán los ya guardados.</p>
-    </details>
-  </section>
-
-  <!-- NUEVO PEDIDO -->
-  <section>
-    <h2>Nuevo pedido</h2>
-    <label for="clienteInput">Nombre del cliente</label>
-    <input type="text" id="clienteInput" list="clientesDatalist" placeholder="ej: Sra. Pamela">
+<main class="wrap" style="max-width:520px;margin:0 auto;padding:14px 14px 90px;">
+  <div id="statusMsg"></div>
+  <!-- NUEVO PEDIDO - protagonista -->
+  <section class="card card-pedido" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;box-shadow:0 2px 12px rgba(0,0,0,.06);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="width:38px;height:38px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:20px;">💬</span><h2 style="font-size:18px;font-weight:800;margin:0;color:#0F2E1A;">Pega aquí el pedido de WhatsApp...</h2></div>
+    <label for="clienteInput" style="font-size:13px;font-weight:600;color:#374151;">Nombre del cliente</label>
+    <input type="text" id="clienteInput" list="clientesDatalist" placeholder="ej: Cristian" style="width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;margin:4px 0 10px;">
     <datalist id="clientesDatalist"></datalist>
-
-    <label for="textoInput">💬 Pega aquí el pedido de WhatsApp...</label>
-    <textarea id="textoInput" placeholder="Pega aquí el pedido del cliente...&#10;Ej: 2 tomate, 1kg palta, lechuga x2"></textarea>
-
-    <button class="btn-secondary" style="width:100%;margin-top:10px;" id="btnAnalizarPedido">Analizar pedido</button>
-
-    <div id="revisionWrap" style="display:none;margin-top:14px;">
-      <label style="margin-top:4px;">Revisa y corrige antes de agregar</label>
-      <div class="col-labels"><span>Producto</span><span>Cant.</span><span>Unidad</span><span>Subtotal</span><span></span></div>
+    <label for="textoInput" style="font-size:13px;font-weight:600;color:#374151;">Pedido</label>
+    <textarea id="textoInput" placeholder="Pega aquí el pedido de WhatsApp...&#10;Ej: 2 tomate, 1kg palta, lechuga x2" style="width:100%;min-height:110px;padding:14px;border:1.5px solid #D1D5DB;border-radius:14px;font-size:16px;margin:4px 0 12px;"></textarea>
+    <label style="display:flex;gap:8px;align-items:center;font-size:14px;"><input type="checkbox" id="fiadoCheckbox"> Fiado</label>
+    <button class="btn-analizar" id="btnAnalizarPedido" type="button" style="width:100%;background:#1A4D2E;color:#fff;border:0;border-radius:14px;padding:14px;font-weight:800;font-size:17px;margin-top:12px;cursor:pointer;">🔍 Analizar pedido</button>
+  </section>
+  <!-- REVISION -->
+  <div id="revisionWrap" style="display:none;">
+    <section class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+      <h3 style="margin:0 0 10px;">Revisa los productos</h3>
       <div id="itemsLista"></div>
-      <button class="btn-secondary btn-small" id="btnAgregarLineaManual">+ Agregar línea</button>
-
-      <div class="totales" id="totalesPreview"></div>
-
-      <label style="display:flex;align-items:center;gap:6px;font-weight:600;margin-top:10px;">
-        <input type="checkbox" id="fiadoCheckbox" style="width:auto;"> Pedido fiado (se suma a la deuda del cliente)
-      </label>
-
-      <button class="btn-primary" id="btnAgregarPedidoALaHoja">Agregar este pedido a la hoja</button>
-      <button class="btn-ghost" id="btnCancelarEdicion" style="display:none;width:100%;text-align:center;">Cancelar edición</button>
-    </div>
-    <div id="statusMsg"></div>
-  </section>
-
-  <!-- PEDIDOS EN LA HOJA -->
-  <section>
-    <h2>Pedidos en la hoja actual <span class="count-badge" id="pedidosCount">0</span></h2>
-    <p class="page-hint" id="pageHint">Se agrupan de a 3 pedidos por hoja de Word.</p>
+      <div id="totalesPreview" class="totales"></div>
+      <button type="button" class="btn-small" id="btnAgregarLineaManual" style="margin-top:8px;">+ Agregar línea manual</button>
+      <button type="button" id="btnAgregarPedidoALaHoja" style="width:100%;background:#14532D;color:#fff;border:0;border-radius:12px;padding:12px;font-weight:700;margin-top:10px;cursor:pointer;">Agregar a la hoja</button>
+      <button type="button" id="btnCancelarEdicion" style="display:none;width:100%;background:#F3F4F6;border:0;border-radius:12px;padding:10px;margin-top:8px;">Cancelar edición</button>
+    </section>
+  </div>
+  <!-- PEDIDOS EN HOJA - tarjeta como referencia -->
+  <section class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+    <h2 style="font-size:16px;margin:0 0 4px;">Pedidos en la hoja actual <span id="pedidosCount">0</span></h2>
+    <p id="pageHint" style="font-size:13px;color:#6B7280;margin:0 0 12px;">Se agrupan de a 3 pedidos por hoja de Word.</p>
+    <p id="pedidosEmpty" style="color:#6B7280;font-size:14px;">Aún no hay pedidos en la hoja. Pega un pedido arriba y analízalo.</p>
     <div id="pedidosLista"></div>
-    <div id="pedidosEmpty" class="empty-hint">Todavía no has agregado pedidos.</div>
-
-    <button class="btn-whatsapp" id="btnCompartirWhatsApp" type="button">Compartir por WhatsApp al cliente</button>
-<button class="btn-tomato" id="btnGenerar" disabled>📄 Generar documento Word</button>
-    <button class="btn-ghost" style="margin-top:8px;" id="btnVaciarHoja">Vaciar toda la hoja</button>
+    <div style="display:flex;gap:10px;margin-top:14px;">
+      <button type="button" id="btnCompartirWhatsApp" style="flex:1;background:#D1FAE5;color:#14532D;border:0;border-radius:14px;padding:13px 8px;font-weight:700;font-size:14px;cursor:pointer;">💬 Compartir WhatsApp</button>
+      <button type="button" id="btnGenerar" style="flex:1;background:#F97316;color:#fff;border:0;border-radius:14px;padding:13px 8px;font-weight:700;font-size:14px;cursor:pointer;">📄 Generar Word</button>
+    </div>
+    <div style="display:flex;justify-content:center;gap:40px;margin-top:14px;padding-top:12px;border-top:1px solid #F3F4F6;"><button type="button" id="btnVaciarHoja" style="background:none;border:0;cursor:pointer;font-size:14px;color:#374151;">🗑️ Vaciar hoja</button></div>
   </section>
-
-  <!-- REPORTE DEL DIA -->
-  <section>
-    <details id="reporteDetails">
-      <summary>Reporte del día</summary>
-      <label for="reporteFecha" style="margin-top:0;">Fecha</label>
-      <input type="date" id="reporteFecha">
-      <div id="reporteResumen"></div>
-      <label style="margin-top:10px;">Productos más pedidos ese día</label>
-      <div id="reporteTop"></div>
-      <p class="empty-hint">Se registra automáticamente cada vez que agregas un pedido nuevo a la hoja.</p>
-    </details>
-  </section>
-
-  <!-- HISTORIAL -->
-  <section>
-    <details id="historialDetails">
-      <summary>Historial de documentos generados <span class="count-badge" id="historialCount">0</span></summary>
-      <div id="historialLista"></div>
-      <div id="historialEmpty" class="empty-hint">Aún no has generado ningún documento.</div>
-    </details>
-  </section>
-
+  <!-- REPORTE / HISTORIAL - compacto -->
+  <details class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><summary style="font-weight:700;cursor:pointer;">📊 Reporte del día</summary><label for="reporteFecha">Fecha</label><input type="date" id="reporteFecha"><div id="reporteResumen"></div><div id="reporteTop"></div></details>
+  <details class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><summary style="font-weight:700;cursor:pointer;">📄 Historial de documentos generados <span id="historialCount">0</span></summary><p id="historialEmpty">Aún no generas documentos.</p><div id="historialLista"></div></details>
+  <!-- CONFIG - colapsado, no molesta -->
+  <details class="card" id="negocioDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><summary style="font-weight:700;cursor:pointer;">Datos del negocio (para la impresión)</summary><label for="negNombre">Nombre</label><input type="text" id="negNombre"><label for="negInfo">Dirección / teléfono</label><input type="text" id="negInfo"><label for="negLogo">Logo (aparece en el Word)</label><input type="file" id="negLogo" accept="image/*"><img id="logoPreview" src="" alt="Logo" style="max-width:120px;display:none;"><button type="button" id="btnQuitarLogo">Quitar logo</button><label for="pedidosPorHojaSelect">Pedidos por hoja de Word</label><select id="pedidosPorHojaSelect"><option value="2">2 por hoja</option><option value="3" selected>3 por hoja</option><option value="4">4 por hoja</option></select></details>
+  <details class="card" id="catalogoDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><summary style="font-weight:700;cursor:pointer;">Catálogo de productos <span id="catCount">0</span></summary><label for="catBuscar">Buscar</label><input type="text" id="catBuscar" placeholder="Escribe para filtrar..."><div id="catalogoLista"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><input type="text" id="catNombre" placeholder="ej: Tomate"><select id="catUnidad"><option value="kg">kg</option><option value="g">g</option><option value="unidad">unidad</option><option value="oferta">OFERTA</option></select><input type="number" id="catPrecio" placeholder="$/kg o c/u"><button type="button" id="btnAgregarProductoCatalogo">+ Agregar</button></div><div style="display:flex;gap:8px;margin-top:10px;"><button type="button" id="btnExportarCatalogoCSV">⬇ Exportar catálogo</button><button type="button" id="btnExportarBaseDatosCSV">⬇ Exportar base</button></div></details>
+  <details class="card" id="clientesDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><summary style="font-weight:700;cursor:pointer;">Clientes <span id="cliCount">0</span></summary><label for="cliNombre">Nombre</label><input type="text" id="cliNombre"><label for="cliDireccion">Dirección</label><input type="text" id="cliDireccion"><label for="cliTelefono">Teléfono</label><input type="text" id="cliTelefono"><button type="button" id="btnAgregarCliente">+ Agregar cliente</button><div id="clientesLista"></div></details>
+  <details class="card" id="reporteDetails" style="display:none;"><summary>Reporte</summary></details>
 </main>
-
-
-  <script src="js/app.js"></script>
-</div>
-<nav class="bottom-nav" aria-label="Navegación principal">
-  <button type="button" class="nav-item active" data-nav="inicio">🏠<span>Inicio</span></button>
-  <button type="button" class="nav-item" data-nav="pedidos">📋<span>Pedidos</span></button>
-  <button type="button" class="nav-item" data-nav="estadisticas">📊<span>Estadísticas</span></button>
-  <button type="button" class="nav-item" data-nav="config">⚙️<span>Configuración</span></button>
+<nav style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E8EDE9;display:flex;justify-content:space-around;padding:8px 8px 12px;z-index:30;box-shadow:0 -2px 12px rgba(0,0,0,.06);">
+  <button type="button" class="nav-item active" data-nav="inicio" style="border:0;background:#F0FDF4;color:#14532D;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>🏠</span><span style="font-size:11px;font-weight:600;">Inicio</span></button>
+  <button type="button" class="nav-item" data-nav="pedidos" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>📋</span><span style="font-size:11px;">Pedidos</span></button>
+  <button type="button" class="nav-item" data-nav="estadisticas" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>📊</span><span style="font-size:11px;">Estadísticas</span></button>
+  <button type="button" class="nav-item" data-nav="config" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>⚙️</span><span style="font-size:11px;">Configuración</span></button>
 </nav>
-</body>
-</html>
+<script src="js/app.js"></script>
+</body></html>
