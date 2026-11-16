@@ -1174,3 +1174,70 @@ document.addEventListener('DOMContentLoaded', function(){
   const b = document.getElementById('btnCompartirWhatsApp');
   if(b && !b.dataset.cableado){ b.dataset.cableado='1'; b.addEventListener('click', compartirPorWhatsApp); }
 })();
+
+// ================= v0.8.0 - Clean UI: emoji, badges, bottom nav, carrito =================
+function emojiParaProducto(nombre){
+  const n = (nombre||'').toLowerCase();
+  if(n.includes('pepino')) return '🥒';
+  if(n.includes('tomate')) return '🍅';
+  if(n.includes('zanahoria')) return '🥕';
+  if(n.includes('lechuga')) return '🥬';
+  if(n.includes('palta')||n.includes('aguacate')) return '🥑';
+  if(n.includes('manzana')) return '🍎';
+  if(n.includes('naranja')) return '🍊';
+  if(n.includes('plátano')||n.includes('platano')||n.includes('banana')) return '🍌';
+  if(n.includes('pera')) return '🍐';
+  if(n.includes('uva')) return '🍇';
+  if(n.includes('frutilla')||n.includes('fresa')) return '🍓';
+  if(n.includes('limón')||n.includes('limon')) return '🍋';
+  if(n.includes('cebolla')) return '🧅';
+  if(n.includes('papa')||n.includes('patata')) return '🥔';
+  if(n.includes('huevo')) return '🥚';
+  if(n.includes('pimiento')||n.includes('piment')) return '🫑';
+  if(n.includes('zapallo')||n.includes('calabaza')) return '🎃';
+  if(n.includes('sandía')||n.includes('sandia')) return '🍉';
+  if(n.includes('melón')||n.includes('melon')) return '🍈';
+  if(n.includes('kiwi')) return '🥝';
+  if(n.includes('choclo')||n.includes('maíz')||n.includes('maiz')) return '🌽';
+  return '🥦';
+}
+// Envolver botones principales en flex cuando existen
+function agruparAccionesPrincipales(){
+  const wa = document.getElementById('btnCompartirWhatsApp');
+  const word = document.getElementById('btnGenerar');
+  if(wa && word && !wa.parentElement.classList.contains('acciones-principales')){
+    const wrap = document.createElement('div');
+    wrap.className = 'acciones-principales';
+    wa.parentNode.insertBefore(wrap, wa);
+    wrap.appendChild(wa); wrap.appendChild(word);
+    wa.textContent = '💬 Compartir WhatsApp';
+    word.textContent = '📄 Generar Word';
+  }
+}
+// Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
+function initBottomNav(){
+  const items = document.querySelectorAll('.bottom-nav .nav-item');
+  items.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      items.forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      const key = btn.dataset.nav;
+      let target = null;
+      if(key==='inicio') target = document.getElementById('textoInput');
+      if(key==='pedidos') target = document.getElementById('pedidosLista') || document.getElementById('revisionWrap');
+      if(key==='estadisticas') target = document.getElementById('reporteDetails') || document.getElementById('reporteResumen');
+      if(key==='config') target = document.getElementById('negocioDetails') || document.getElementById('catalogoDetails');
+      if(target) target.scrollIntoView({behavior:'smooth', block:'start'});
+      if(key==='config' && target && target.tagName==='DETAILS') target.open = true;
+    });
+  });
+}
+function actualizarCarrito(){
+  const el = document.getElementById('cartCount');
+  if(!el) return;
+  const n = (typeof pedidosPendientes !== 'undefined' ? pedidosPendientes.length : 0) + (typeof itemsEnRevision !== 'undefined' && itemsEnRevision.length>0 ? 1 : 0);
+  el.textContent = Math.max(n, 0);
+  el.style.display = n===0 ? 'none' : 'flex';
+}
+document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
+setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);

@@ -17,19 +17,18 @@
 
 </head>
 <body>
-<div class="topbar">
-  <div class="topbar-left">
-    <img src="img/logo.png" alt="El Castillo de la Fruta" class="topbar-logo">
-    <div><div class="topbar-title">El Castillo de la Fruta</div><div class="topbar-sub">Propuesta de plataforma propia</div></div>
+<header class="app-header">
+  <div class="header-main">
+    <img src="img/logo.png" alt="El Castillo de la Fruta" class="header-logo">
+    <div class="header-title"><span class="ht-1">El Castillo</span><span class="ht-2">de la Fruta</span><span class="header-badge">Vista Dueños</span></div>
+    <button type="button" class="cart-btn" id="btnCarrito" aria-label="Pedidos en hoja"><span class="cart-icon">🛒</span><span class="cart-count" id="cartCount">1</span></button>
   </div>
-  <div class="topbar-badges"><span class="badge">Vista Cliente</span><span class="badge badge-naranja">Vista Dueños</span></div>
-</div>
-<div class="banner">Estás viendo la Vista Dueños - Todo funciona sin recargar</div>
+</header>
 <div class="wrap">
 <p class="sub">Pega el pedido de WhatsApp, pesa, pon el valor y genera la hoja.</p>
 
 
-<div class="pedidos-head"><h2 class="pedidos-title">PEDIDOS</h2><p class="pedidos-sub">ELCASTILLODELAFRUTA.CL</p></div>
+
 
 <main>
 
@@ -57,7 +56,7 @@
     </details>
   </section>
 
-  <!-- CATALOGO -->
+  </div>
   <section>
     <details id="catalogoDetails">
       <summary>Catálogo de productos <span class="count-badge" id="catCount">0</span></summary>
@@ -87,7 +86,7 @@
     </details>
   </section>
 
-  <!-- CLIENTES -->
+  </div>
   <section>
     <details id="clientesDetails">
       <summary>Clientes <span class="count-badge" id="cliCount">0</span></summary>
@@ -109,8 +108,8 @@
     <input type="text" id="clienteInput" list="clientesDatalist" placeholder="ej: Sra. Pamela">
     <datalist id="clientesDatalist"></datalist>
 
-    <label for="textoInput">Pega aquí el mensaje de WhatsApp</label>
-    <textarea id="textoInput" placeholder="hola casero buenos días necesito...&#10;2 tomate&#10;1kg palta&#10;lechuga x2"></textarea>
+    <label for="textoInput">💬 Pega aquí el pedido de WhatsApp...</label>
+    <textarea id="textoInput" placeholder="Pega aquí el pedido del cliente...&#10;Ej: 2 tomate, 1kg palta, lechuga x2"></textarea>
 
     <button class="btn-secondary" style="width:100%;margin-top:10px;" id="btnAnalizarPedido">Analizar pedido</button>
 
@@ -171,5 +170,11 @@
 
   <script src="js/app.js"></script>
 </div>
+<nav class="bottom-nav" aria-label="Navegación principal">
+  <button type="button" class="nav-item active" data-nav="inicio">🏠<span>Inicio</span></button>
+  <button type="button" class="nav-item" data-nav="pedidos">📋<span>Pedidos</span></button>
+  <button type="button" class="nav-item" data-nav="estadisticas">📊<span>Estadísticas</span></button>
+  <button type="button" class="nav-item" data-nav="config">⚙️<span>Configuración</span></button>
+</nav>
 </body>
 </html>
