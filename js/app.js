@@ -938,25 +938,14 @@ function renderPedidosPendientes(){
     const totU = pedido.items.filter(it=>it.unidad==='unidad').reduce((a,it)=>a+it.cantidad,0);
     const totD = pedido.items.reduce((a,it)=>a+it.precio,0);
     const hoja = Math.floor(i/porHoja)+1;
+    const fechaHoy = new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'});
     return `
       <div class="ticket">
-        <div class="ticket-head">
-          <span class="cliente">${escapeHtml(pedido.cliente)}</span>
-          <span class="ticket-num">Hoja ${hoja}</span>
-        </div>
-        <ul>
-          ${pedido.items.map(it => `<li><span>${escapeHtml(it.producto)}</span><span>${it.cantidad} ${it.unidad}</span></li>`).join('')}
-        </ul>
-        <div class="ticket-foot">
-          <span>${totK>0?totK+' kg ':''}${totG>0?totG+' g ':''}${totU>0?totU+' un':''}</span>
-          <span>${totD>0? '$'+Math.round(totD).toLocaleString('es-CL') : ''}</span>
-        </div>
-        <div class="ticket-actions">
-          <button class="btn-secondary btn-small" data-action="editarPedidoPendiente" data-index="${i}">Editar</button>
-          <button class="btn-ghost" data-action="eliminarPedidoPendiente" data-index="${i}">Eliminar pedido</button>
-        </div>
-      </div>
-    `;
+        <div class="ticket-head"><span class="cliente">${escapeHtml(pedido.cliente)}</span><span class="ticket-num">📅 ${fechaHoy} · Hoja ${hoja}</span></div>
+        <ul>${pedido.items.map(it => `<li><span>${emojiParaProducto(it.producto)} ${escapeHtml(it.producto)}</span><span>${it.cantidad} ${it.unidad}</span></li>`).join('')}</ul>
+        <div class="ticket-foot">${totK>0?`<span>${totK} kg</span>`:''}${totG>0?`<span>${totG} g</span>`:''}${totU>0?`<span>${totU} unidades</span>`:''}${totD>0?`<span>$${Math.round(totD).toLocaleString('es-CL')}</span>`:''}</div>
+        <div class="ticket-actions"><button data-action="editarPedidoPendiente" data-index="${i}">✏️ Editar</button><button data-action="eliminarPedidoPendiente" data-index="${i}">🗑️ Eliminar</button></div>
+      </div>`;
   }).join('');
 }
 
@@ -1241,3 +1230,60 @@ function actualizarCarrito(){
 }
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
+
+// v0.8.1 bottom nav + carrito
+(function(){
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('.nav-item').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        document.querySelectorAll('.nav-item').forEach(x=>{x.classList.remove('active');x.style.background='none';x.style.color='#9CA3AF';});
+        b.classList.add('active'); b.style.background='#F0FDF4'; b.style.color='#14532D';
+        const k=b.dataset.nav; let t=null;
+        if(k==='inicio') t=document.getElementById('textoInput');
+        if(k==='pedidos') t=document.getElementById('pedidosLista');
+        if(k==='estadisticas') t=document.getElementById('reporteFecha');
+        if(k==='config') t=document.getElementById('negocioDetails');
+        if(t){ if(t.tagName==='DETAILS') t.open=true; t.scrollIntoView({behavior:'smooth',block:'start'}); }
+      });
+    });
+    const cart=document.getElementById('btnCarrito'); if(cart) cart.addEventListener('click', ()=>{ document.getElementById('pedidosLista').scrollIntoView({behavior:'smooth'}); });
+  });
+})();
+
+// ================= v0.9.0 Tabs independientes =================
+function showTab(tab){
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.remove('active'));
+  const page = document.getElementById('tab-'+tab);
+  if(page) page.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    const isActive = b.dataset.nav===tab;
+    b.classList.toggle('active', isActive);
+    b.style.background = isActive ? '#F0FDF4' : 'none';
+    b.style.color = isActive ? '#14532D' : '#9CA3AF';
+  });
+  window.scrollTo({top:0, behavior:'instant'});
+  try{ localStorage.setItem('castillo_tab_activa', tab); }catch(e){}
+  if(tab==='estadisticas' && typeof renderReporte==='function') renderReporte();
+  if(tab==='pedidos' && typeof renderPedidosPendientes==='function') renderPedidosPendientes();
+}
+function initTabsV090(){
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    b.addEventListener('click', ()=> showTab(b.dataset.nav));
+  });
+  const cart = document.getElementById('btnCarrito');
+  if(cart) cart.addEventListener('click', ()=> showTab('pedidos'));
+  // Flujo: al agregar a la hoja, saltar a Pedidos
+  const btnAdd = document.getElementById('btnAgregarPedidoALaHoja');
+  if(btnAdd) btnAdd.addEventListener('click', ()=> setTimeout(()=> showTab('pedidos'), 250));
+  // Al editar, volver a Inicio
+  document.addEventListener('click', (e)=>{
+    const btn = e.target.closest('[data-action="editarPedidoPendiente"]');
+    if(btn) setTimeout(()=> showTab('inicio'), 100);
+  });
+  // Tab guardada o Inicio por defecto
+  let saved = 'inicio';
+  try{ saved = localStorage.getItem('castillo_tab_activa') || 'inicio'; }catch(e){}
+  if(!['inicio','pedidos','estadisticas','config'].includes(saved)) saved='inicio';
+  showTab(saved);
+}
+document.addEventListener('DOMContentLoaded', initTabsV090);
