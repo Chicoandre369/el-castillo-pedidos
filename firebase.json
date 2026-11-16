@@ -6,7 +6,10 @@
       "**/.*",
       "**/node_modules/**",
       "backups/**",
-      "scripts/**"
+      "scripts/**",
+      "**/*.md",
+      ".firebase/**",
+      ".git/**"
     ],
     "headers": [
       {
