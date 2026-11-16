@@ -18,7 +18,7 @@ function fechaLocalISO(d){
 }
 
 // ---------- Persistencia del catálogo ----------
-// v0.9.7: catalogo unificado - junta las 3 claves que uso la app en el tiempo
+// v0.9.9: catalogo unificado - junta las 3 claves que uso la app en el tiempo
 // catalogo_verduleria (principal) + castillo_catalogo (Productos) + catalogo (vieja)
 // Sin esto, un producto agregado en Productos no lo veia el parser.
 function leerListaCatalogo(clave){
@@ -64,7 +64,7 @@ function cargarConfig(){
   const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
   const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
   const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
-  // logo ya manejado arriba con guard (v0.9.7)
+  // logo ya manejado arriba con guard (v0.9.9)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
@@ -173,7 +173,7 @@ function abonarDeuda(i){
 function renderClientes(){
   const cont = document.getElementById('clientesLista');
   const _cc = document.getElementById('cliCount'); if(_cc) _cc.textContent = clientes.length;
-  if(!cont) return; // v0.9.7: Clientes manual ya no existe, no tumbar app.js
+  if(!cont) return; // v0.9.9: Clientes manual ya no existe, no tumbar app.js
   if(clientes.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas clientes.</p>';
     return;
@@ -261,7 +261,7 @@ function registrarVenta(pedido){
 }
 function renderReporte(){
   const fechaEl = document.getElementById('reporteFecha');
-  if(!fechaEl) return; // v0.9.7 guard
+  if(!fechaEl) return; // v0.9.9 guard
   const dia = fechaEl.value || fechaLocalISO();
   const ventasDia = ventasLog.filter(v => v.diaISO === dia);
   const totalVendido = ventasDia.reduce((a, v) => a + v.total, 0);
@@ -777,7 +777,7 @@ function parsearTexto(texto){
       if(item){
         items.push(item);
       } else {
-        // v0.9.7: no se pierde - queda para mostrar Usar / Agregar como nuevo
+        // v0.9.9: no se pierde - queda para mostrar Usar / Agregar como nuevo
         const nombreNo = (parsed.producto || '').trim();
         if(nombreNo){
           if(!window._noReconocidosV097) window._noReconocidosV097 = [];
@@ -914,6 +914,7 @@ function agregarPedidoALaHoja(){
 function editarPedidoPendiente(i){
   const p = pedidosPendientes[i];
   document.getElementById('clienteInput').value = p.cliente;
+  try{ if(document.getElementById('telefonoInput')) document.getElementById('telefonoInput').value = p.telefono || ''; }catch(e){}
   itemsEnRevision = JSON.parse(JSON.stringify(p.items));
   editingIndex = i;
   document.getElementById('revisionWrap').style.display = 'block';
@@ -981,7 +982,7 @@ function renderPedidosPendientes(){
         <div class="ticket-head"><span class="cliente">${escapeHtml(pedido.cliente)}</span><span class="ticket-num">📅 ${fechaHoy} · Hoja ${hoja}</span></div>
         <ul>${pedido.items.map(it => `<li><span>${emojiParaProducto(it.producto)} ${escapeHtml(it.producto)}</span><span>${it.cantidad} ${it.unidad}</span></li>`).join('')}</ul>
         <div class="ticket-foot">${totK>0?`<span>${totK} kg</span>`:''}${totG>0?`<span>${totG} g</span>`:''}${totU>0?`<span>${totU} unidades</span>`:''}${totD>0?`<span>$${Math.round(totD).toLocaleString('es-CL')}</span>`:''}</div>
-        <div class="ticket-actions"><button data-action="editarPedidoPendiente" data-index="${i}">✏️ Editar</button><button data-action="eliminarPedidoPendiente" data-index="${i}">🗑️ Eliminar</button></div>
+        <div class="ticket-actions"><button data-action="editarPedidoPendiente" data-index="${i}">✏️ Editar</button><button data-action="eliminarPedidoPendiente" data-index="${i}">🗑️ Eliminar</button><button data-action="enviarWhatsAppPedido" data-index="${i}" style="background:#25D366;color:#fff;border:0;border-radius:999px;padding:7px 12px;font-weight:700;font-size:13px;cursor:pointer;">💬 Enviar a ${escapeHtml(pedido.cliente)}${pedido.telefono ? ' · ' + escapeHtml(pedido.telefono) : ' · sin teléfono'}</button></div>
       </div>`;
   }).join('');
 }
@@ -1095,7 +1096,7 @@ document.addEventListener('click', function(e){
   const action = btn.getAttribute('data-action');
   const idx = parseInt(btn.getAttribute('data-index'), 10);
   if(!Number.isFinite(idx)) return;
-  const acciones = { abonarDeuda, eliminarCliente, reimprimirHistorial, eliminarHistorial, eliminarProductoCatalogo, quitarItemRevision, editarPedidoPendiente, eliminarPedidoPendiente };
+  const acciones = { abonarDeuda, eliminarCliente, reimprimirHistorial, eliminarHistorial, eliminarProductoCatalogo, quitarItemRevision, editarPedidoPendiente, eliminarPedidoPendiente, enviarWhatsAppPedido };
   const fn = acciones[action];
   if(typeof fn === 'function') fn(idx);
 });
@@ -1148,7 +1149,7 @@ function cablearEventosEstaticos(){
   }
 }
 // ================= FIN v0.5.0 =================
-// init v0.9.7: cada paso en try/catch, un render fallido no tumba el resto
+// init v0.9.9: cada paso en try/catch, un render fallido no tumba el resto
 try{ cablearEventosEstaticos(); }catch(e){ console.error('init cablear', e); }
 try{ cargarConfig(); }catch(e){ console.error('init cargarConfig', e); }
 try{ cargarCatalogo(); }catch(e){ console.error('init cargarCatalogo', e); }
@@ -1165,7 +1166,7 @@ try{ renderReporte(); }catch(e){ console.error('init renderReporte', e); }
 // 5) pesar y poner valor 6) Generar Word para imprimir y corchetear en la caja
 // 7) NUEVO: Compartir por WhatsApp - genera texto listo para enviar al cliente:
 // "Hola {cliente}, tu pedido en El Castillo: - 2 kg Tomate $... Total $... Revisa tu hoja impresa en la caja. Gracias!"
-// v0.9.7: WhatsApp al cliente desde la hoja
+// v0.9.9: WhatsApp al cliente desde la hoja
 function normalizarTelefonoChile(tel){
   if(!tel) return '';
   let t = String(tel).replace(/[^0-9+]/g,'');
@@ -1218,10 +1219,42 @@ function construirMensajeWhatsApp(){
   // Si ya esta en la hoja, usar la hoja (antes devolvia null y el boton no hacia nada)
   const msgHoja = construirMensajeWhatsAppHoja();
   if(msgHoja){
+    const distintos = [];
+    try{ pedidosPendientes.forEach(function(x){ const k = normTxt(x.cliente); if(distintos.indexOf(k) === -1) distintos.push(k); }); }catch(e){}
+    if(distintos.length > 1){
+      const st2 = document.getElementById('statusMsg');
+      if(st2) st2.innerHTML = '<div class="status-msg warn">La hoja tiene ' + distintos.length + ' clientes distintos. Usa el boton verde de cada pedido para enviarle solo su pedido a cada uno.</div>';
+      return { msg: msgHoja, telefono: '', esHoja: true };
+    }
     const primer = pedidosPendientes[0] ? pedidosPendientes[0].cliente : '';
     return { msg: msgHoja, telefono: obtenerTelefonoCliente(primer), esHoja: true };
   }
   return null;
+}
+// v0.9.9: enviar SOLO un pedido a SU cliente
+function construirMensajeWhatsAppPedido(p){
+  if(!p) return null;
+  const lineas = (p.items || []).map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
+  const tot = (p.items || []).reduce(function(a,it){ return a + (it.precio || 0); }, 0);
+  const totalKg = (p.items || []).filter(function(it){ return it.unidad==='kg'; }).reduce(function(a,it){ return a + it.cantidad; }, 0);
+  const totalUn = (p.items || []).filter(function(it){ return it.unidad==='unidad'; }).reduce(function(a,it){ return a + it.cantidad; }, 0);
+  let msg = 'Hola ' + p.cliente + ', tu pedido en El Castillo de la Fruta:\n' + lineas.join('\n') + '\n';
+  if(totalKg>0) msg += 'Total kilos: ' + totalKg + ' kg\n';
+  if(totalUn>0) msg += 'Total unidades: ' + totalUn + '\n';
+  msg += 'Total: $' + Math.round(tot).toLocaleString('es-CL') + (p.fiado ? ' (FIADO)' : '') + '\nRevisa tu hoja impresa que va corcheteada en tu caja. \u00a1Gracias!';
+  return msg;
+}
+function enviarWhatsAppPedido(i){
+  const p = pedidosPendientes[i];
+  const statusEl = document.getElementById('statusMsg');
+  if(!p){ if(statusEl) statusEl.innerHTML = '<div class="status-msg warn">Ese pedido ya no esta en la hoja.</div>'; return; }
+  const msg = construirMensajeWhatsAppPedido(p);
+  let tel = '';
+  try{ if(p.telefono) tel = normalizarTelefonoChile(p.telefono); }catch(e){}
+  if(!tel) tel = obtenerTelefonoCliente(p.cliente);
+  const url = tel ? 'https://wa.me/' + tel + '?text=' + encodeURIComponent(msg) : 'https://wa.me/?text=' + encodeURIComponent(msg);
+  window.open(url, '_blank', 'noopener');
+  if(statusEl) statusEl.innerHTML = '<div class="status-msg ok">' + (tel ? 'Abriendo WhatsApp de ' + escapeHtml(p.cliente) + ' (' + tel + '). ' : 'Abriendo WhatsApp. Elige a ' + escapeHtml(p.cliente) + ' porque ese pedido no tiene telefono guardado. ') + 'Se envio solo su pedido, no toda la hoja.</div>';
 }
 function compartirPorWhatsApp(){
   const res = construirMensajeWhatsApp();
@@ -1280,12 +1313,12 @@ function agruparAccionesPrincipales(){
     wrap.className = 'acciones-principales';
     wa.parentNode.insertBefore(wrap, wa);
     wrap.appendChild(wa); wrap.appendChild(word);
-    wa.textContent = '💬 Compartir WhatsApp';
+    wa.textContent = '💬 Enviar toda la hoja';
     word.textContent = '📄 Generar Word';
   }
 }
 // Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){ return; /* v0.9.7: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
+function initBottomNav(){ return; /* v0.9.9: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
 function actualizarCarrito(){
   const el = document.getElementById('cartCount');
   if(!el) return;
@@ -1296,7 +1329,7 @@ function actualizarCarrito(){
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
 
-// v0.8.1 bottom nav DESACTIVADO en v0.9.7 - lo maneja showTab, el viejo solo hacia scroll
+// v0.8.1 bottom nav DESACTIVADO en v0.9.9 - lo maneja showTab, el viejo solo hacia scroll
 (function(){ return; })();
 
 // ================= v0.9.1 Tabs independientes =================
@@ -1338,7 +1371,7 @@ function initTabsV091(){
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v0.9.7 CORREGIDA: productos nuevos + clientes automaticos =================
+// ================= v0.9.9 CORREGIDA: productos nuevos + clientes automaticos =================
 // Negocio fijo - ya no se edita
 const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
 function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
@@ -1378,7 +1411,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
   const old = document.getElementById('avisoNoReconocidos'); if(old) old.remove();
   wrap.prepend(div);
   div.querySelectorAll('[data-agregar-nuevo]').forEach(function(b){ b.addEventListener('click', function(){
-    // v0.9.7: crea el producto altiro y re-analiza, sin perder cantidad/unidad
+    // v0.9.9: crea el producto altiro y re-analiza, sin perder cantidad/unidad
     const nombre = b.dataset.agregarNuevo; const cant = parseFloat(b.dataset.cantidad || '1') || 1; const uni = b.dataset.unidad || 'kg';
     try{
       const lista = obtenerCatalogoUnificado();
@@ -1392,7 +1425,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
     const st = document.getElementById('statusMsg'); if(st) st.innerHTML = '<div class="status-msg ok">\u2705 ' + escapeHtml(nombre) + ' agregado. Ya aparece en la revisi\u00f3n.</div>';
   }); });
   div.querySelectorAll('[data-corregir-a]').forEach(function(b){ b.addEventListener('click', function(){
-    // v0.9.7 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
+    // v0.9.9 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
     const ta = document.getElementById('textoInput');
     if(ta){ ta.value = ta.value.split(b.dataset.corregirDe).join(b.dataset.corregirA); const btn = document.getElementById('btnAnalizarPedido'); if(btn) btn.click(); }
   }); });
@@ -1413,7 +1446,7 @@ function initAgregarProductoNuevo(){
     let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
     if(cat.some(p=> normTxt(p.nombre||p.name)==normTxt(nombre))){ msg.textContent='Ese producto ya está en la lista.'; msg.style.color='#B91C1C'; return; }
     cat.push({ nombre, name:nombre, unidad, precio, alias });
-    // v0.9.7: guardar en las 3 claves + memoria para que el parser lo vea altiro
+    // v0.9.9: guardar en las 3 claves + memoria para que el parser lo vea altiro
     try{ guardarCatalogoUnificado(cat); }catch(e){ localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); try{ localStorage.setItem('catalogo', JSON.stringify(cat)); }catch(e2){} }
     msg.textContent = `✅ ${nombre} agregado. Ya lo puedes usar en el próximo pedido.`; msg.style.color='#14532D';
     document.getElementById('nuevoProdNombre').value=''; document.getElementById('nuevoProdPrecio').value=''; document.getElementById('nuevoProdAlias').value='';
@@ -1500,3 +1533,6 @@ document.addEventListener('DOMContentLoaded', ()=>{ initAgregarProductoNuevo(); 
 window.obtenerCatalogoUnificado = obtenerCatalogoUnificado;
 window.normalizarTelefonoChile = normalizarTelefonoChile;
 window.construirMensajeWhatsAppHoja = construirMensajeWhatsAppHoja;
+
+window.enviarWhatsAppPedido = enviarWhatsAppPedido;
+window.construirMensajeWhatsAppPedido = construirMensajeWhatsAppPedido;
