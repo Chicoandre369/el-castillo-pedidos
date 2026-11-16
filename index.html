@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>El Castillo de la Fruta - Pedidos</title>
-<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/styles.css?v=092">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
@@ -64,9 +64,33 @@
   </div>
   <div id="tab-config" class="tab-page">
 <!-- CONFIG - colapsado, no molesta -->
-  <section class="card card-config" id="negocioDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><h3>Datos del negocio</h3><label for="negNombre">Nombre</label><input type="text" id="negNombre"><label for="negInfo">Dirección / teléfono</label><input type="text" id="negInfo"><label for="negLogo">Logo (aparece en el Word)</label><input type="file" id="negLogo" accept="image/*"><img id="logoPreview" src="" alt="Logo" style="max-width:120px;display:none;"><button type="button" id="btnQuitarLogo">Quitar logo</button><label for="pedidosPorHojaSelect">Pedidos por hoja de Word</label><select id="pedidosPorHojaSelect"><option value="2">2 por hoja</option><option value="3" selected>3 por hoja</option><option value="4">4 por hoja</option></select></section>
-  <section class="card card-config" id="catalogoDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><h3>Catálogo de productos <span id="catCount">0</span></h3><label for="catBuscar">Buscar</label><input type="text" id="catBuscar" placeholder="Escribe para filtrar..."><div id="catalogoLista"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;"><input type="text" id="catNombre" placeholder="ej: Tomate"><select id="catUnidad"><option value="kg">kg</option><option value="g">g</option><option value="unidad">unidad</option><option value="oferta">OFERTA</option></select><input type="number" id="catPrecio" placeholder="$/kg o c/u"><button type="button" id="btnAgregarProductoCatalogo">+ Agregar</button></div><div style="display:flex;gap:8px;margin-top:10px;"><button type="button" id="btnExportarCatalogoCSV">⬇ Exportar catálogo</button><button type="button" id="btnExportarBaseDatosCSV">⬇ Exportar base</button></div></section>
-  <section class="card card-config" id="clientesDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><h3>Clientes <span id="cliCount">0</span></h3><label for="cliNombre">Nombre</label><input type="text" id="cliNombre"><label for="cliDireccion">Dirección</label><input type="text" id="cliDireccion"><label for="cliTelefono">Teléfono</label><input type="text" id="cliTelefono"><button type="button" id="btnAgregarCliente">+ Agregar cliente</button><div id="clientesLista"></div></section>
+  <section class="card card-config" id="negocioDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+<h3 style="margin:0 0 8px;">Datos del negocio</h3>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="negNombre" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Nombre</label><input type="text" id="negNombre" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="negInfo" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Dirección / teléfono</label><input type="text" id="negInfo" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="negLogo" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Logo (aparece en el Word)</label><input type="file" id="negLogo" accept="image/*" style="display:block;width:100%;padding:10px;border:1px solid #D1D5DB;border-radius:12px;"></div>
+<img id="logoPreview" src="" alt="Logo" style="max-width:120px;display:none;">
+<div style="display:block;width:100%;margin-bottom:12px;"><button type="button" id="btnQuitarLogo" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;">Quitar logo</button></div>
+<div style="display:block;width:100%;margin-bottom:4px;"><label for="pedidosPorHojaSelect" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Pedidos por hoja de Word</label><select id="pedidosPorHojaSelect" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"><option value="2">2 por hoja</option><option value="3" selected>3 por hoja</option><option value="4">4 por hoja</option></select></div>
+</section>
+  <section class="card card-config" id="catalogoDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+<h3 style="margin:0 0 8px;">Catálogo de productos <span id="catCount">0</span></h3>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="catBuscar" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Buscar</label><input type="text" id="catBuscar" placeholder="Escribe para filtrar..." style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div id="catalogoLista"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="catNombre" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Producto</label><input type="text" id="catNombre" placeholder="ej: Tomate" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="catUnidad" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Unidad</label><select id="catUnidad" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"><option value="kg">kg</option><option value="g">g</option><option value="unidad">unidad</option><option value="oferta">OFERTA</option></select></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="catPrecio" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Precio $/kg o c/u</label><input type="number" id="catPrecio" placeholder="$/kg o c/u" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><button type="button" id="btnAgregarProductoCatalogo" style="width:100%;padding:12px;border:0;border-radius:12px;background:#14532D;color:#fff;font-weight:700;">+ Agregar producto</button></div>
+<div style="display:block;width:100%;"><button type="button" id="btnExportarCatalogoCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;margin-bottom:8px;">⬇ Exportar catálogo</button><button type="button" id="btnExportarBaseDatosCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;">⬇ Exportar base</button></div>
+</section>
+  <section class="card card-config" id="clientesDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+<h3 style="margin:0 0 8px;">Clientes <span id="cliCount">0</span></h3>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="cliNombre" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Nombre</label><input type="text" id="cliNombre" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="cliDireccion" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Dirección</label><input type="text" id="cliDireccion" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><label for="cliTelefono" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Teléfono</label><input type="text" id="cliTelefono" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
+<div style="display:block;width:100%;margin-bottom:12px;"><button type="button" id="btnAgregarCliente" style="width:100%;padding:12px;border:0;border-radius:12px;background:#14532D;color:#fff;font-weight:700;">+ Agregar cliente</button></div>
+<div id="clientesLista"></div>
+</section>
   <details id="reporteDetails" style="display:none;"><summary>Reporte</summary></details>
 
   </div>
@@ -77,5 +101,5 @@
   <button type="button" class="nav-item" data-nav="estadisticas" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>📊</span><span style="font-size:11px;">Estadísticas</span></button>
   <button type="button" class="nav-item" data-nav="config" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>⚙️</span><span style="font-size:11px;">Configuración</span></button>
 </nav>
-<script src="js/app.js"></script>
+<script src="js/app.js?v=092"></script>
 </body></html>
