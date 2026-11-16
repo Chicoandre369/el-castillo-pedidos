@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>El Castillo de la Fruta - Pedidos</title>
-<link rel="stylesheet" href="css/styles.css?v=093">
+<link rel="stylesheet" href="css/styles.css?v=094">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
@@ -55,53 +55,55 @@
   </section>
   
   </div>
-  <div id="tab-estadisticas" class="tab-page">
+  <div id="tab-clientes" class="tab-page">
+  <section class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+    <h3 style="margin:0 0 4px;">👥 Clientes — se arma solo de tus pedidos</h3>
+    <p style="margin:0 0 12px;color:#6B7280;font-size:13px;">No hay que escribirlos a mano. Cada vez que pegas un pedido, el cliente queda guardado con lo que siempre lleva.</p>
+    <input id="buscarCliente" placeholder="🔍 Buscar cliente..." style="width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:10px;font-size:15px;" />
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <button data-filtro-semana="todas" class="chip-semana" style="padding:8px 12px;border-radius:999px;border:1px solid #14532D;background:#14532D;color:#fff;font-weight:700;font-size:13px;">Todas las semanas</button>
+      <button data-filtro-semana="esta" class="chip-semana" style="padding:8px 12px;border-radius:999px;border:1px solid #E5E7EB;background:#fff;font-weight:700;font-size:13px;">Esta semana</button>
+      <button data-filtro-semana="anterior" class="chip-semana" style="padding:8px 12px;border-radius:999px;border:1px solid #E5E7EB;background:#fff;font-weight:700;font-size:13px;">Semana anterior</button>
+    </div>
+    <div id="listaClientesAuto"></div>
+    <p id="msgClientesAuto" style="color:#6B7280;font-size:13px;margin:8px 0 0;"></p>
+  </section>
+
 <!-- REPORTE / HISTORIAL - compacto -->
   
   
-<details class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><summary style="font-weight:700;cursor:pointer;">📊 Reporte del día</summary><label for="reporteFecha">Fecha</label><input type="date" id="reporteFecha"><div id="reporteResumen"></div><div id="reporteTop"></div></details>
+<details class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;"><summary style="font-weight:700;cursor:pointer;">👥 Reporte del día</summary><label for="reporteFecha">Fecha</label><input type="date" id="reporteFecha"><div id="reporteResumen"></div><div id="reporteTop"></div></details>
   <section class="card card-historial"><h3>📄 Historial de documentos <span id="historialCount">0</span></h3><p id="historialEmpty">Aún no generas documentos.</p><div id="historialLista"></div></section>
   </div>
-  <div id="tab-config" class="tab-page">
-<!-- CONFIG - colapsado, no molesta -->
-  <section class="card card-config" id="negocioDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
-<h3 style="margin:0 0 8px;">Datos del negocio</h3>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="negNombre" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Nombre</label><input type="text" id="negNombre" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="negInfo" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Dirección / teléfono</label><input type="text" id="negInfo" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="negLogo" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Logo (aparece en el Word)</label><input type="file" id="negLogo" accept="image/*" style="display:block;width:100%;padding:10px;border:1px solid #D1D5DB;border-radius:12px;"></div>
-<img id="logoPreview" src="" alt="Logo" style="max-width:120px;display:none;">
-<div style="display:block;width:100%;margin-bottom:12px;"><button type="button" id="btnQuitarLogo" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;">Quitar logo</button></div>
-<div style="display:block;width:100%;margin-bottom:4px;"><label for="pedidosPorHojaSelect" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Pedidos por hoja de Word</label><select id="pedidosPorHojaSelect" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"><option value="2">2 por hoja</option><option value="3" selected>3 por hoja</option><option value="4">4 por hoja</option></select></div>
-</section>
-  <section class="card card-config" id="catalogoDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
-<h3 style="margin:0 0 8px;">Catálogo de productos <span id="catCount">0</span></h3>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="catBuscar" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Buscar</label><input type="text" id="catBuscar" placeholder="Escribe para filtrar..." style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div id="catalogoLista"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="catNombre" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Producto</label><input type="text" id="catNombre" placeholder="ej: Tomate" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="catUnidad" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Unidad</label><select id="catUnidad" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"><option value="kg">kg</option><option value="g">g</option><option value="unidad">unidad</option><option value="oferta">OFERTA</option></select></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="catPrecio" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Precio $/kg o c/u</label><input type="number" id="catPrecio" placeholder="$/kg o c/u" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><button type="button" id="btnAgregarProductoCatalogo" style="width:100%;padding:12px;border:0;border-radius:12px;background:#14532D;color:#fff;font-weight:700;">+ Agregar producto</button></div>
-<div style="display:block;width:100%;"><button type="button" id="btnExportarCatalogoCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;margin-bottom:8px;">⬇ Exportar catálogo</button>
-        <button type="button" id="btnCargarCatalogoBase" class="btn btn-secondary" style="width:100%;margin-top:8px;">🍎 Cargar catálogo base (frutas y verduras)</button>
-        <p id="msgCatalogoBase" style="font-size:13px;color:#4B5563;margin:8px 0 0;"></p><button type="button" id="btnExportarBaseDatosCSV" style="width:100%;padding:11px;border:0;border-radius:12px;background:#F3F4F6;font-weight:600;">⬇ Exportar base</button></div>
-</section>
-  <section class="card card-config" id="clientesDetails" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
-<h3 style="margin:0 0 8px;">Clientes <span id="cliCount">0</span></h3>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="cliNombre" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Nombre</label><input type="text" id="cliNombre" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="cliDireccion" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Dirección</label><input type="text" id="cliDireccion" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><label for="cliTelefono" style="display:block;width:100%;font-size:14px;font-weight:600;margin-bottom:5px;">Teléfono</label><input type="text" id="cliTelefono" style="display:block;width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;font-size:15px;"></div>
-<div style="display:block;width:100%;margin-bottom:12px;"><button type="button" id="btnAgregarCliente" style="width:100%;padding:12px;border:0;border-radius:12px;background:#14532D;color:#fff;font-weight:700;">+ Agregar cliente</button></div>
-<div id="clientesLista"></div>
-</section>
-  <details id="reporteDetails" style="display:none;"><summary>Reporte</summary></details>
-
+  <div id="tab-productos" class="tab-page">
+  <section class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+    <h3 style="margin:0 0 4px;">🥬 Agregar producto nuevo</h3>
+    <p style="margin:0 0 14px;color:#6B7280;font-size:13px;">Cuando llega una verdura o fruta nueva, agrégala aquí. Queda altiro en la lista y la app la va a reconocer en el próximo pedido que pegues.</p>
+    <label style="display:block;font-weight:700;margin:0 0 6px;">Nombre del producto</label>
+    <input id="nuevoProdNombre" placeholder="Ej: Alcachofa, Zapallo italiano, Frutilla" style="width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:10px;font-size:15px;" />
+    <label style="display:block;font-weight:700;margin:0 0 6px;">Se vende por</label>
+    <select id="nuevoProdUnidad" style="width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:10px;font-size:15px;"><option value="kg">Kilo (kg)</option><option value="unidad">Unidad</option><option value="bandeja">Bandeja</option><option value="malla">Malla</option><option value="atado">Atado</option></select>
+    <label style="display:block;font-weight:700;margin:0 0 6px;">Precio por <span id="nuevoProdUnidadLabel">kg</span> ($)</label>
+    <input id="nuevoProdPrecio" type="number" inputmode="numeric" placeholder="Ej: 1800" style="width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:10px;font-size:15px;" />
+    <label style="display:block;font-weight:700;margin:0 0 6px;">También se escribe como (opcional)</label>
+    <input id="nuevoProdAlias" placeholder="Ej: tomates, tomatito — separado por coma" style="width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:12px;font-size:15px;" />
+    <button id="btnAgregarProductoNuevo" class="btn-primary" style="width:100%;padding:13px;border:none;border-radius:14px;background:#14532D;color:#fff;font-weight:700;font-size:15px;">＋ Agregar producto a la lista</button>
+    <p id="msgNuevoProducto" style="margin:10px 0 0;color:#14532D;font-weight:600;font-size:13px;"></p>
+  </section>
+  <section class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+    <h3 style="margin:0 0 4px;">📦 Productos en la lista <span id="catCount2">0</span></h3>
+    <p style="margin:0 0 10px;color:#6B7280;font-size:13px;">Busca para ver si ya existe antes de agregar uno nuevo.</p>
+    <input id="buscarProductoNuevo" placeholder="🔍 Buscar producto..." style="width:100%;padding:12px;border:1px solid #E5E7EB;border-radius:12px;margin-bottom:10px;font-size:15px;" />
+    <div id="listaProductosConfig"></div>
+  </section>
+  <p style="text-align:center;color:#9CA3AF;font-size:12px;margin:8px 0 0;">El Castillo de la Fruta • Los datos del negocio ya están fijos en la hoja y en el Word.</p>
   </div>
 </main>
 <nav style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E8EDE9;display:flex;justify-content:space-around;padding:8px 8px 12px;z-index:30;box-shadow:0 -2px 12px rgba(0,0,0,.06);">
   <button type="button" class="nav-item active" data-nav="inicio" style="border:0;background:#F0FDF4;color:#14532D;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>🏠</span><span style="font-size:11px;font-weight:600;">Inicio</span></button>
   <button type="button" class="nav-item" data-nav="pedidos" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>📋</span><span style="font-size:11px;">Pedidos</span></button>
-  <button type="button" class="nav-item" data-nav="estadisticas" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>📊</span><span style="font-size:11px;">Estadísticas</span></button>
-  <button type="button" class="nav-item" data-nav="config" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>⚙️</span><span style="font-size:11px;">Configuración</span></button>
+  <button type="button" class="nav-item" data-nav="clientes" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>👥</span><span style="font-size:11px;">Clientes</span></button>
+  <button type="button" class="nav-item" data-nav="productos" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>🥬</span><span style="font-size:11px;">Productos</span></button>
 </nav>
-<script src="js/app.js?v=093"></script>
+<script src="js/app.js?v=094"></script>
 </body></html>
