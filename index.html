@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>El Castillo de la Fruta - Pedidos</title>
-<link rel="stylesheet" href="css/styles.css?v=096">
+git checkout -b version-0.9.7
+git status --short<link rel="stylesheet" href="css/styles.css?v=097">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
@@ -9,7 +10,7 @@
 <header class="app-header" style="background:#fff;border-bottom:1px solid #E8EDE9;position:sticky;top:0;z-index:20;padding:10px 14px;">
   <div style="display:flex;align-items:center;gap:12px;max-width:520px;margin:0 auto;">
     <img src="img/logo.png" alt="El Castillo de la Fruta" style="width:54px;height:54px;min-width:54px;min-height:54px;max-width:54px;max-height:54px;border-radius:50%;object-fit:cover;border:2px solid #E8F5E9;display:block;">
-    <div style="flex:1;line-height:1.05;"><div style="font-weight:900;font-size:22px;color:#0F2E1A;letter-spacing:-.02em;">El Castillo</div><div style="font-weight:800;font-size:20px;color:#5A9A3A;">de la Fruta</div><span style="display:inline-block;margin-top:4px;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:3px 7px;border-radius:999px;">Vista Dueños</span><span style="display:inline-block;margin-top:4px;margin-left:6px;background:#111;color:#fff;font-size:11px;font-weight:700;padding:3px 7px;border-radius:999px;">v0.9.6</span></div>
+    <div style="flex:1;line-height:1.05;"><div style="font-weight:900;font-size:22px;color:#0F2E1A;letter-spacing:-.02em;">El Castillo</div><div style="font-weight:800;font-size:20px;color:#5A9A3A;">de la Fruta</div><span style="display:inline-block;margin-top:4px;background:#FEF3C7;color:#92400E;font-size:11px;font-weight:700;padding:3px 7px;border-radius:999px;">Vista Dueños</span><span style="display:inline-block;margin-top:4px;margin-left:6px;background:#111;color:#fff;font-size:11px;font-weight:700;padding:3px 7px;border-radius:999px;">v0.9.7</span></div>
     <button type="button" id="btnCarrito" aria-label="Pedidos" style="position:relative;width:48px;height:48px;border-radius:50%;border:0;background:#F0FDF4;cursor:pointer;font-size:22px;">🛒<span id="cartCount" style="position:absolute;top:-2px;right:-2px;background:#14532D;color:#fff;font-size:11px;font-weight:800;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;">1</span></button>
   </div>
 </header>
@@ -22,6 +23,8 @@
     <label for="clienteInput" style="font-size:13px;font-weight:600;color:#374151;">Nombre del cliente</label>
     <input type="text" id="clienteInput" list="clientesDatalist" placeholder="ej: Cristian" style="width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;margin:4px 0 10px;">
     <datalist id="clientesDatalist"></datalist>
+    <label for="telefonoInput" style="font-size:13px;font-weight:600;color:#374151;">Teléfono del cliente (opcional, para enviar por WhatsApp)</label>
+    <input type="tel" id="telefonoInput" placeholder="ej: 56912345678" inputmode="tel" autocomplete="tel" style="width:100%;padding:12px;border:1px solid #D1D5DB;border-radius:12px;margin:4px 0 10px;">
     <label for="textoInput" style="font-size:13px;font-weight:600;color:#374151;">Pedido</label>
     <textarea id="textoInput" placeholder="Pega aquí el pedido de WhatsApp...&#10;Ej: 2 tomate, 1kg palta, lechuga x2" style="width:100%;min-height:110px;padding:14px;border:1.5px solid #D1D5DB;border-radius:14px;font-size:16px;margin:4px 0 12px;"></textarea>
     <label style="display:flex;gap:8px;align-items:center;font-size:14px;"><input type="checkbox" id="fiadoCheckbox"> Fiado</label>
@@ -48,7 +51,7 @@
     <p id="pedidosEmpty" style="color:#6B7280;font-size:14px;">Aún no hay pedidos en la hoja. Pega un pedido arriba y analízalo.</p>
     <div id="pedidosLista"></div>
     <div style="display:flex;gap:10px;margin-top:14px;">
-      <button type="button" id="btnCompartirWhatsApp" style="flex:1;background:#D1FAE5;color:#14532D;border:0;border-radius:14px;padding:13px 8px;font-weight:700;font-size:14px;cursor:pointer;">💬 Compartir WhatsApp</button>
+      <button type="button" id="btnCompartirWhatsApp" style="flex:1;background:#D1FAE5;color:#14532D;border:0;border-radius:14px;padding:13px 8px;font-weight:700;font-size:14px;cursor:pointer;">💬 Enviar por WhatsApp al cliente</button>
       <button type="button" id="btnGenerar" style="flex:1;background:#F97316;color:#fff;border:0;border-radius:14px;padding:13px 8px;font-weight:700;font-size:14px;cursor:pointer;">📄 Generar Word</button>
     </div>
     <div style="display:flex;justify-content:center;gap:40px;margin-top:14px;padding-top:12px;border-top:1px solid #F3F4F6;"><button type="button" id="btnVaciarHoja" style="background:none;border:0;cursor:pointer;font-size:14px;color:#374151;">🗑️ Vaciar hoja</button></div>
@@ -105,7 +108,7 @@
   <button type="button" class="nav-item" data-nav="clientes" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>👥</span><span style="font-size:11px;">Clientes</span></button>
   <button type="button" class="nav-item" data-nav="productos" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>🥬</span><span style="font-size:11px;">Productos</span></button>
 </nav>
-<script src="js/tabs.js?v=096"></script>
-<script src="js/app.js?v=096"></script>
+<script src="js/tabs.js?v=097"></script>
+<script src="js/app.js?v=097"></script>
 
 </body></html>
