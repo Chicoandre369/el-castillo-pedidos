@@ -9,16 +9,14 @@ Sin backend, sin base de datos en la nube, sin login. Todo se genera en local en
 |---|---|---|
 | **GitHub Pages** | https://chicoandre369.github.io/el-castillo-pedidos/ | Portafolio |
 | **Google Cloud - Firebase Hosting** | https://el-castillo-pedidos-ab575.web.app | Portafolio / Producción |
-| **Netlify** | (URL del local) | Negocio - celular del local |
 
-> La misma app, mismo código, 2 nubes. Ideal para portafolio y para ebook "Crea tu app con seguridad y GitHub".
 
 ## Qué hace
 
 - Pega texto de WhatsApp: `2 alcachofas 4 pepinos 2 lechugas`
 - Detecta productos aunque vengan corridos, con comas o con " y ": `2 tomate, 1kg palta y 3 lechugas`
 - Revisa cantidades / unidades / precios antes de agregar
-- Genera documento Word `.doc` con la hoja de pedidos
+- Genera documento Word `.docx` con la hoja de pedidos
 - Catálogo, clientes, historial, reporte del día, fiado
 - Sin persistencia sensible: en incógnito sale en 0, en el celular del local usa `localStorage`
 
@@ -56,9 +54,6 @@ firebase deploy --only hosting
 Config en `firebase.json` + `.firebaserc` (proyecto `el-castillo-pedidos-ab575`).
 v0.6.1: `firebase.json` ignora `backups/`, `scripts/`, `*.md`, `.git/`, `.firebase/` para subir solo lo necesario.
 
-### Netlify (negocio)
-Headers en `_headers` en raíz. Misma CSP que en Firebase.
-
 ## Desarrollo local
 
 Solo abre `index.html` o usa:
@@ -92,5 +87,5 @@ scripts/
 
 ## Autor
 
-Andrés - El Castillo de la Fruta - Santiago, Chile
+André Gutierrez Baeza  - El Castillo de la Fruta - Santiago, Chile
 Google Cybersecurity Certificate en progreso (Curso 5/9) - aplicado en esta app.
