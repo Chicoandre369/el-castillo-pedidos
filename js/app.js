@@ -18,7 +18,7 @@ function fechaLocalISO(d){
 }
 
 // ---------- Persistencia del catálogo ----------
-// v1.0.9: catalogo unificado - junta las 3 claves que uso la app en el tiempo
+// v1.0.10: catalogo unificado - junta las 3 claves que uso la app en el tiempo
 // catalogo_verduleria (principal) + castillo_catalogo (Productos) + catalogo (vieja)
 // Sin esto, un producto agregado en Productos no lo veia el parser.
 function leerListaCatalogo(clave){
@@ -64,7 +64,7 @@ function cargarConfig(){
   const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
   const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
   const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
-  // logo ya manejado arriba con guard (v1.0.9)
+  // logo ya manejado arriba con guard (v1.0.10)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
@@ -173,7 +173,7 @@ function abonarDeuda(i){
 function renderClientes(){
   const cont = document.getElementById('clientesLista');
   const _cc = document.getElementById('cliCount'); if(_cc) _cc.textContent = clientes.length;
-  if(!cont) return; // v1.0.9: Clientes manual ya no existe, no tumbar app.js
+  if(!cont) return; // v1.0.10: Clientes manual ya no existe, no tumbar app.js
   if(clientes.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas clientes.</p>';
     return;
@@ -261,7 +261,7 @@ function registrarVenta(pedido){
 }
 function renderReporte(){
   const fechaEl = document.getElementById('reporteFecha');
-  if(!fechaEl) return; // v1.0.9 guard
+  if(!fechaEl) return; // v1.0.10 guard
   const dia = fechaEl.value || fechaLocalISO();
   const ventasDia = ventasLog.filter(v => v.diaISO === dia);
   const totalVendido = ventasDia.reduce((a, v) => a + v.total, 0);
@@ -777,7 +777,7 @@ function parsearTexto(texto){
       if(item){
         items.push(item);
       } else {
-        // v1.0.9: no se pierde - queda para mostrar Usar / Agregar como nuevo
+        // v1.0.10: no se pierde - queda para mostrar Usar / Agregar como nuevo
         const nombreNo = (parsed.producto || '').trim();
         if(nombreNo){
           if(!window._noReconocidosV097) window._noReconocidosV097 = [];
@@ -867,7 +867,7 @@ function agregarPedidoALaHoja(){
     // Actualiza un pedido ya existente en la hoja (no vuelve a registrar venta ni fiado)
     pedidosPendientes[editingIndex].cliente = cliente;
     pedidosPendientes[editingIndex].items = JSON.parse(JSON.stringify(items));
-    // v1.0.9: al editar, guardar tambien el telefono y mantener la fecha original de emision
+    // v1.0.10: al editar, guardar tambien el telefono y mantener la fecha original de emision
     try{ const telEd = document.getElementById('telefonoInput') ? document.getElementById('telefonoInput').value.trim() : ''; if(telEd) pedidosPendientes[editingIndex].telefono = telEd; }catch(e){}
     editingIndex = null;
     document.getElementById('btnCancelarEdicion').style.display = 'none';
@@ -1105,7 +1105,7 @@ function generarWordDesdeLista(lista){
   URL.revokeObjectURL(url);
   document.getElementById('statusMsg').innerHTML = '<div class="status-msg ok">Hoja lista para Imprimir / Guardar como PDF. Ya no se descarga .doc porque iPhone lo marcaba como danado.</div>';
 }
-// v1.0.9: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
+// v1.0.10: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
 function descargarHoja(){
   var st = document.getElementById('statusMsg');
   var n = (pedidosPendientes && pedidosPendientes.length) ? pedidosPendientes.length : 0;
@@ -1118,7 +1118,7 @@ function descargarHoja(){
     if(st) st.innerHTML = '<div class="status-msg warn">No se pudo armar la hoja.</div>';
     return;
   }
-  // v1.0.9: Descarga directa REAL. No es .doc falso (HTML con nombre .doc = iPhone dice danado).
+  // v1.0.10: Descarga directa REAL. No es .doc falso (HTML con nombre .doc = iPhone dice danado).
   // Es .html, que es lo que realmente es la hoja. iPhone lo previsualiza y lo abre en Safari sin error.
   // Nombre: pedidos_16-11-2026.html - se guarda en Archivos > Descargas y se puede compartir por WhatsApp.
   var blob = new Blob(['\ufeff', built.html], {type: 'text/html;charset=utf-8'});
@@ -1133,7 +1133,7 @@ function descargarHoja(){
   if(st) st.innerHTML = '<div class="status-msg ok">Hoja descargada como .html con ' + n + ' pedido(s). Buscala en Archivos > Descargas. Si la tocas, se abre en Safari y se ve igual que la vista previa. Desde ahi puedes Compartir o Imprimir / Guardar como PDF.</div>';
 }
 
-// v1.0.9: DOCX REAL (no HTML renombrado). Un .docx es un ZIP con XML de Word.
+// v1.0.10: DOCX REAL (no HTML renombrado). Un .docx es un ZIP con XML de Word.
 // Genera un ZIP sin compresion (stored) con CRC32 en JS puro, sin librerias externas.
 // Asi Android lo abre con "Abrir siempre con" el programa de impresion, como hacia la app anterior.
 // Incluye: encabezado El Castillo, fecha por pedido, telefono, tabla de productos, totales por pedido y total hoja.
@@ -1293,7 +1293,7 @@ function generarDocxReal(){
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = 'pedidos_' + fecha.replace(/\\//g,'-') + '.docx';
+  a.download = 'pedidos_' + fecha.replace(/\//g,'-') + '.docx';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -1420,7 +1420,7 @@ function cablearEventosEstaticos(){
   }
 }
 // ================= FIN v0.5.0 =================
-// init v1.0.9: cada paso en try/catch, un render fallido no tumba el resto
+// init v1.0.10: cada paso en try/catch, un render fallido no tumba el resto
 try{ cablearEventosEstaticos(); }catch(e){ console.error('init cablear', e); }
 try{ cargarConfig(); }catch(e){ console.error('init cargarConfig', e); }
 try{ cargarCatalogo(); }catch(e){ console.error('init cargarCatalogo', e); }
@@ -1437,7 +1437,7 @@ try{ renderReporte(); }catch(e){ console.error('init renderReporte', e); }
 // 5) pesar y poner valor 6) Generar Word para imprimir y corchetear en la caja
 // 7) NUEVO: Compartir por WhatsApp - genera texto listo para enviar al cliente:
 // "Hola {cliente}, tu pedido en El Castillo: - 2 kg Tomate $... Total $... Revisa tu hoja impresa en la caja. Gracias!"
-// v1.0.9: WhatsApp al cliente desde la hoja
+// v1.0.10: WhatsApp al cliente desde la hoja
 function normalizarTelefonoChile(tel){
   if(!tel) return '';
   let t = String(tel).replace(/[^0-9+]/g,'');
@@ -1502,7 +1502,7 @@ function construirMensajeWhatsApp(){
   }
   return null;
 }
-// v1.0.9: enviar SOLO un pedido a SU cliente
+// v1.0.10: enviar SOLO un pedido a SU cliente
 function construirMensajeWhatsAppPedido(p){
   if(!p) return null;
   const lineas = (p.items || []).map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
@@ -1589,7 +1589,7 @@ function agruparAccionesPrincipales(){
   }
 }
 // Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){ return; /* v1.0.9: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
+function initBottomNav(){ return; /* v1.0.10: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
 function actualizarCarrito(){
   const el = document.getElementById('cartCount');
   if(!el) return;
@@ -1600,7 +1600,7 @@ function actualizarCarrito(){
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
 
-// v0.8.1 bottom nav DESACTIVADO en v1.0.9 - lo maneja showTab, el viejo solo hacia scroll
+// v0.8.1 bottom nav DESACTIVADO en v1.0.10 - lo maneja showTab, el viejo solo hacia scroll
 (function(){ return; })();
 
 // ================= v0.9.1 Tabs independientes =================
@@ -1642,7 +1642,7 @@ function initTabsV091(){
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v1.0.9 CORREGIDA: productos nuevos + clientes automaticos =================
+// ================= v1.0.10 CORREGIDA: productos nuevos + clientes automaticos =================
 // Negocio fijo - ya no se edita
 const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
 function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
@@ -1682,7 +1682,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
   const old = document.getElementById('avisoNoReconocidos'); if(old) old.remove();
   wrap.prepend(div);
   div.querySelectorAll('[data-agregar-nuevo]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.9: crea el producto altiro y re-analiza, sin perder cantidad/unidad
+    // v1.0.10: crea el producto altiro y re-analiza, sin perder cantidad/unidad
     const nombre = b.dataset.agregarNuevo; const cant = parseFloat(b.dataset.cantidad || '1') || 1; const uni = b.dataset.unidad || 'kg';
     try{
       const lista = obtenerCatalogoUnificado();
@@ -1696,7 +1696,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
     const st = document.getElementById('statusMsg'); if(st) st.innerHTML = '<div class="status-msg ok">\u2705 ' + escapeHtml(nombre) + ' agregado. Ya aparece en la revisi\u00f3n.</div>';
   }); });
   div.querySelectorAll('[data-corregir-a]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.9 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
+    // v1.0.10 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
     const ta = document.getElementById('textoInput');
     if(ta){ ta.value = ta.value.split(b.dataset.corregirDe).join(b.dataset.corregirA); const btn = document.getElementById('btnAnalizarPedido'); if(btn) btn.click(); }
   }); });
@@ -1717,7 +1717,7 @@ function initAgregarProductoNuevo(){
     let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
     if(cat.some(p=> normTxt(p.nombre||p.name)==normTxt(nombre))){ msg.textContent='Ese producto ya está en la lista.'; msg.style.color='#B91C1C'; return; }
     cat.push({ nombre, name:nombre, unidad, precio, alias });
-    // v1.0.9: guardar en las 3 claves + memoria para que el parser lo vea altiro
+    // v1.0.10: guardar en las 3 claves + memoria para que el parser lo vea altiro
     try{ guardarCatalogoUnificado(cat); }catch(e){ localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); try{ localStorage.setItem('catalogo', JSON.stringify(cat)); }catch(e2){} }
     msg.textContent = `✅ ${nombre} agregado. Ya lo puedes usar en el próximo pedido.`; msg.style.color='#14532D';
     document.getElementById('nuevoProdNombre').value=''; document.getElementById('nuevoProdPrecio').value=''; document.getElementById('nuevoProdAlias').value='';
