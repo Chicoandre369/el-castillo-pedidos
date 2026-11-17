@@ -18,7 +18,7 @@ function fechaLocalISO(d){
 }
 
 // ---------- Persistencia del catálogo ----------
-// v1.0.8: catalogo unificado - junta las 3 claves que uso la app en el tiempo
+// v1.0.9: catalogo unificado - junta las 3 claves que uso la app en el tiempo
 // catalogo_verduleria (principal) + castillo_catalogo (Productos) + catalogo (vieja)
 // Sin esto, un producto agregado en Productos no lo veia el parser.
 function leerListaCatalogo(clave){
@@ -64,7 +64,7 @@ function cargarConfig(){
   const _nI = document.getElementById('negInfo'); if(_nI) _nI.value = config.infoNegocio || '';
   const _pH = document.getElementById('pedidosPorHojaSelect'); if(_pH) _pH.value = config.pedidosPorHoja || 3;
   const _lP = document.getElementById('logoPreview'); if(_lP && config.logo){ _lP.src = config.logo; _lP.style.display = 'block'; }
-  // logo ya manejado arriba con guard (v1.0.8)
+  // logo ya manejado arriba con guard (v1.0.9)
 }
 function guardarConfig(){
   try{ localStorage.setItem('config_negocio_verduleria', JSON.stringify(config)); }catch(e){}
@@ -173,7 +173,7 @@ function abonarDeuda(i){
 function renderClientes(){
   const cont = document.getElementById('clientesLista');
   const _cc = document.getElementById('cliCount'); if(_cc) _cc.textContent = clientes.length;
-  if(!cont) return; // v1.0.8: Clientes manual ya no existe, no tumbar app.js
+  if(!cont) return; // v1.0.9: Clientes manual ya no existe, no tumbar app.js
   if(clientes.length === 0){
     cont.innerHTML = '<p class="empty-hint">Aún no agregas clientes.</p>';
     return;
@@ -261,7 +261,7 @@ function registrarVenta(pedido){
 }
 function renderReporte(){
   const fechaEl = document.getElementById('reporteFecha');
-  if(!fechaEl) return; // v1.0.8 guard
+  if(!fechaEl) return; // v1.0.9 guard
   const dia = fechaEl.value || fechaLocalISO();
   const ventasDia = ventasLog.filter(v => v.diaISO === dia);
   const totalVendido = ventasDia.reduce((a, v) => a + v.total, 0);
@@ -777,7 +777,7 @@ function parsearTexto(texto){
       if(item){
         items.push(item);
       } else {
-        // v1.0.8: no se pierde - queda para mostrar Usar / Agregar como nuevo
+        // v1.0.9: no se pierde - queda para mostrar Usar / Agregar como nuevo
         const nombreNo = (parsed.producto || '').trim();
         if(nombreNo){
           if(!window._noReconocidosV097) window._noReconocidosV097 = [];
@@ -867,7 +867,7 @@ function agregarPedidoALaHoja(){
     // Actualiza un pedido ya existente en la hoja (no vuelve a registrar venta ni fiado)
     pedidosPendientes[editingIndex].cliente = cliente;
     pedidosPendientes[editingIndex].items = JSON.parse(JSON.stringify(items));
-    // v1.0.8: al editar, guardar tambien el telefono y mantener la fecha original de emision
+    // v1.0.9: al editar, guardar tambien el telefono y mantener la fecha original de emision
     try{ const telEd = document.getElementById('telefonoInput') ? document.getElementById('telefonoInput').value.trim() : ''; if(telEd) pedidosPendientes[editingIndex].telefono = telEd; }catch(e){}
     editingIndex = null;
     document.getElementById('btnCancelarEdicion').style.display = 'none';
@@ -1105,7 +1105,7 @@ function generarWordDesdeLista(lista){
   URL.revokeObjectURL(url);
   document.getElementById('statusMsg').innerHTML = '<div class="status-msg ok">Hoja lista para Imprimir / Guardar como PDF. Ya no se descarga .doc porque iPhone lo marcaba como danado.</div>';
 }
-// v1.0.8: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
+// v1.0.9: Vista previa de la hoja sin abrir Word - abre la misma hoja en una pestaña nueva, se ve igual que el .doc
 function descargarHoja(){
   var st = document.getElementById('statusMsg');
   var n = (pedidosPendientes && pedidosPendientes.length) ? pedidosPendientes.length : 0;
@@ -1118,7 +1118,7 @@ function descargarHoja(){
     if(st) st.innerHTML = '<div class="status-msg warn">No se pudo armar la hoja.</div>';
     return;
   }
-  // v1.0.8: Descarga directa REAL. No es .doc falso (HTML con nombre .doc = iPhone dice danado).
+  // v1.0.9: Descarga directa REAL. No es .doc falso (HTML con nombre .doc = iPhone dice danado).
   // Es .html, que es lo que realmente es la hoja. iPhone lo previsualiza y lo abre en Safari sin error.
   // Nombre: pedidos_16-11-2026.html - se guarda en Archivos > Descargas y se puede compartir por WhatsApp.
   var blob = new Blob(['\ufeff', built.html], {type: 'text/html;charset=utf-8'});
@@ -1133,7 +1133,7 @@ function descargarHoja(){
   if(st) st.innerHTML = '<div class="status-msg ok">Hoja descargada como .html con ' + n + ' pedido(s). Buscala en Archivos > Descargas. Si la tocas, se abre en Safari y se ve igual que la vista previa. Desde ahi puedes Compartir o Imprimir / Guardar como PDF.</div>';
 }
 
-// v1.0.8: DOCX REAL (no HTML renombrado). Un .docx es un ZIP con XML de Word.
+// v1.0.9: DOCX REAL (no HTML renombrado). Un .docx es un ZIP con XML de Word.
 // Genera un ZIP sin compresion (stored) con CRC32 en JS puro, sin librerias externas.
 // Asi Android lo abre con "Abrir siempre con" el programa de impresion, como hacia la app anterior.
 // Incluye: encabezado El Castillo, fecha por pedido, telefono, tabla de productos, totales por pedido y total hoja.
@@ -1190,6 +1190,9 @@ function generarDocxReal(){
   var horaGen = fechaGen.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
   var nombreNeg = (config && config.nombreNegocio ? config.nombreNegocio : 'El Castillo de la Fruta') || 'El Castillo de la Fruta';
   var totalHojaD = pedidosPendientes.reduce(function(a,p){ return a + (p.items||[]).reduce(function(b,it){ return b + (it.precio||0); }, 0); }, 0);
+  var totHojaKg = pedidosPendientes.reduce(function(a,p){ return a + (p.items||[]).filter(function(it){ return it.unidad==='kg'; }).reduce(function(b,it){ return b+it.cantidad; }, 0); }, 0);
+  var totHojaG = pedidosPendientes.reduce(function(a,p){ return a + (p.items||[]).filter(function(it){ return it.unidad==='g'; }).reduce(function(b,it){ return b+it.cantidad; }, 0); }, 0);
+  var totHojaU = pedidosPendientes.reduce(function(a,p){ return a + (p.items||[]).filter(function(it){ return it.unidad==='unidad'; }).reduce(function(b,it){ return b+it.cantidad; }, 0); }, 0);
   function fechaPedidoStr(p){
     try{
       if(p && p.fecha){ var d = new Date(p.fecha); if(!isNaN(d)) return d.toLocaleDateString('es-CL') + ' ' + d.toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'}); }
@@ -1197,60 +1200,87 @@ function generarDocxReal(){
     }catch(e){}
     return fecha + ' ' + horaGen;
   }
-  // Construir body XML de Word
-  var body = '';
-  function p(texto, bold, size, color, align){
-    return '<w:p><w:pPr><w:jc w:val="' + (align||'left') + '"/><w:rPr><w:b ' + (bold ? 'w:val="true"' : 'w:val="false"') + '/><w:sz w:val="' + (size||24) + '"/><w:color w:val="' + (color||'000000') + '"/></w:rPr></w:pPr><w:r><w:rPr><w:b ' + (bold ? 'w:val="true"' : 'w:val="false"') + '/><w:sz w:val="' + (size||24) + '"/><w:color w:val="' + (color||'000000') + '"/></w:rPr><w:t xml:space="preserve">' + escapeXml(texto) + '</w:t></w:r></w:p>';
+  function fmtCant(v){ return Number(v).toLocaleString('es-CL'); }
+  function totalTxtFor(items){
+    var k = items.filter(function(it){ return it.unidad==='kg'; }).reduce(function(a,it){ return a+it.cantidad; }, 0);
+    var g = items.filter(function(it){ return it.unidad==='g'; }).reduce(function(a,it){ return a+it.cantidad; }, 0);
+    var u = items.filter(function(it){ return it.unidad==='unidad'; }).reduce(function(a,it){ return a+it.cantidad; }, 0);
+    var d = items.reduce(function(a,it){ return a+it.precio; }, 0);
+    var parts = [];
+    if(k>0) parts.push(fmtCant(k)+' kg');
+    if(g>0) parts.push(fmtCant(g)+' g');
+    if(u>0) parts.push(fmtCant(u)+' unidades');
+    if(d>0) parts.push('$'+Math.round(d).toLocaleString('es-CL'));
+    return parts.join('  |  ') || '-';
   }
-  function pVacio(){ return '<w:p/>'; }
-  // Encabezado de hoja
-  body += p(nombreNeg, true, 32, '2F5233', 'center');
-  body += p('Verduleria - Pedidos del dia  |  Generada ' + fecha + ' ' + horaGen + '  |  ' + n + ' pedido(s)', false, 20, '555555', 'center');
-  body += pVacio();
+  // Helpers XML - con noProof para que Word no subraye en azul/rojo
+  function run(texto, bold, size, color, italic){
+    return '<w:r><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:b ' + (bold ? 'w:val="true"' : 'w:val="false"') + '/><w:i ' + (italic ? 'w:val="true"' : 'w:val="false"') + '/><w:sz w:val="' + (size||22) + '"/><w:szCs w:val="' + (size||22) + '"/><w:color w:val="' + (color||'000000') + '"/><w:noProof/></w:rPr><w:t xml:space="preserve">' + escapeXml(texto) + '</w:t></w:r>';
+  }
+  function para(runs, align, shading, spaceBefore, spaceAfter, borderBottom){
+    var pPr = '<w:pPr><w:jc w:val="' + (align||'left') + '"/>';
+    if(shading) pPr += '<w:shd w:fill="' + shading + '" w:val="clear"/>';
+    pPr += '<w:spacing w:before="' + (spaceBefore||0) + '" w:after="' + (spaceAfter||120) + '" w:line="276" w:lineRule="auto"/>';
+    if(borderBottom) pPr += '<w:pBdr><w:bottom w:val="single" w:sz="12" w:space="4" w:color="F97316"/></w:pBdr>';
+    pPr += '<w:rPr><w:noProof/></w:rPr></w:pPr>';
+    return '<w:p>' + pPr + runs.join('') + '</w:p>';
+  }
+  function paraVacio(){ return '<w:p><w:pPr><w:spacing w:after="100"/></w:pPr></w:p>'; }
+  // LOGO como dibujo real centrado - esto era lo que faltaba en v1.0.8
+  var tieneLogo = false;
+  var logoBytesTmp = new Uint8Array(0);
+  try{
+    var ls = (typeof LOGO_EMBEDDED !== 'undefined' && LOGO_EMBEDDED) ? LOGO_EMBEDDED : '';
+    if(ls && ls.indexOf('base64,') !== -1){ logoBytesTmp = base64ToBytes(ls.split('base64,')[1]); tieneLogo = logoBytesTmp.length > 5000; }
+    else if(config && config.logo && config.logo.indexOf('base64,') !== -1){ logoBytesTmp = base64ToBytes(config.logo.split('base64,')[1]); tieneLogo = logoBytesTmp.length > 5000; }
+  }catch(e){ tieneLogo = false; }
+  var body = '';
+  if(tieneLogo){
+    // 2.1 pulgadas = 1905000 EMU aprox, cuadrado para el logo original
+    var drawing = '<w:r><w:rPr><w:noProof/></w:rPr><w:drawing><wp:inline xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" distT="0" distB="0" distL="0" distR="0"><wp:extent cx="1905000" cy="1905000"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:docPr id="1" name="Logo Castillo"/><wp:cNvGraphicFramePr><a:graphicFrameLocks xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:nvPicPr><pic:cNvPr id="0" name="Logo Castillo"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="rId2"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1905000" cy="1905000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>';
+    body += '<w:p><w:pPr><w:jc w:val="center"/><w:spacing w:after="60"/><w:rPr><w:noProof/></w:rPr></w:pPr>' + drawing + '</w:p>';
+  }
+  body += para([run(nombreNeg, true, 36, '1A4D2E')], 'center', null, 0, 40, false);
+  body += para([run('Verduleria  -  Pedidos del dia', false, 22, '555555'), run('  |  Generada ' + fecha + ' ' + horaGen + '  |  ' + n + ' pedido(s)', false, 22, '555555')], 'center', null, 0, 200, true);
+  body += paraVacio();
   pedidosPendientes.forEach(function(pedido){
-    var totK = pedido.items.filter(function(it){ return it.unidad==='kg'; }).reduce(function(a,it){ return a+it.cantidad; }, 0);
-    var totG = pedido.items.filter(function(it){ return it.unidad==='g'; }).reduce(function(a,it){ return a+it.cantidad; }, 0);
-    var totU = pedido.items.filter(function(it){ return it.unidad==='unidad'; }).reduce(function(a,it){ return a+it.cantidad; }, 0);
-    var totD = pedido.items.reduce(function(a,it){ return a+it.precio; }, 0);
-    var totalTxt = [];
-    if(totK>0) totalTxt.push(totK.toLocaleString('es-CL')+' kg');
-    if(totG>0) totalTxt.push(totG.toLocaleString('es-CL')+' g');
-    if(totU>0) totalTxt.push(totU.toLocaleString('es-CL')+' unidades');
-    if(totD>0) totalTxt.push('$'+Math.round(totD).toLocaleString('es-CL'));
-    var telTxt = pedido.telefono ? '  |  Tel: ' + pedido.telefono : '';
     var fiadoTxt = pedido.fiado ? '  |  FIADO' : '';
-    // Titulo del pedido con logo (imagen) + Cliente
-    body += '<w:p><w:pPr><w:shd w:fill="2F5233" w:val="clear"/><w:jc w:val="left"/></w:pPr><w:r><w:rPr><w:color w:val="FFFFFF"/><w:b w:val="true"/><w:sz w:val="28"/></w:rPr><w:t xml:space="preserve">  Cliente: ' + escapeXml(pedido.cliente) + escapeXml(fiadoTxt) + '</w:t></w:r></w:p>';
-    body += p('Pedido emitido: ' + fechaPedidoStr(pedido) + telTxt, false, 20, '555555', 'left');
-    // Tabla
-    var rows = '';
-    function celda(texto, bold, bg){
-      return '<w:tc><w:tcPr><w:shd w:fill="' + (bg||'FFFFFF') + '" w:val="clear"/><w:tcW w:w="1800" w:type="dxa"/></w:tcPr><w:p><w:r><w:rPr><w:b ' + (bold ? 'w:val="true"' : 'w:val="false"') + '/><w:sz w:val="22"/></w:rPr><w:t xml:space="preserve">' + escapeXml(texto) + '</w:t></w:r></w:p></w:tc>';
+    // Banner verde del cliente - igual que la hoja bonita
+    body += para([run('  Cliente: ' + pedido.cliente + fiadoTxt, true, 28, 'FFFFFF')], 'left', '1A4D2E', 200, 80, false);
+    var telTxt = pedido.telefono ? '  |  Tel: ' + pedido.telefono : '';
+    body += para([run('Pedido emitido: ' + fechaPedidoStr(pedido) + telTxt, false, 20, '666666', true)], 'left', null, 0, 140, false);
+    // Tabla bonita
+    function celda(texto, bold, bg, color, align){
+      return '<w:tc><w:tcPr><w:shd w:fill="' + (bg||'FFFFFF') + '" w:val="clear"/><w:tcW w:w="1800" w:type="dxa"/><w:tcMar><w:top w:w="60" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:left w:w="120" w:type="dxa"/><w:right w:w="120" w:type="dxa"/></w:tcMar><w:vAlign w:val="center"/></w:tcPr><w:p><w:pPr><w:jc w:val="' + (align||'left') + '"/><w:spacing w:after="0"/><w:rPr><w:noProof/></w:rPr></w:pPr>' + run(texto, bold, 22, color||'1A2E1A') + '</w:p></w:tc>';
     }
-    function fila(celdas){ return '<w:tr>' + celdas.join('') + '</w:tr>'; }
-    rows += fila([celda('Producto', true, 'EDE6D0'), celda('Cantidad', true, 'EDE6D0'), celda('Unidad', true, 'EDE6D0'), celda('Subtotal', true, 'EDE6D0')]);
-    pedido.items.forEach(function(it){
-      rows += fila([celda(it.producto, false, 'FFFFFF'), celda(String(it.cantidad), false, 'FFFFFF'), celda(it.unidad, false, 'FFFFFF'), celda(it.precio>0 ? '$'+Math.round(it.precio).toLocaleString('es-CL') : '-', false, 'FFFFFF')]);
+    function fila(celdas){ return '<w:tr><w:trPr><w:cantSplit/></w:trPr>' + celdas.join('') + '</w:tr>'; }
+    var rows = '';
+    rows += fila([celda('Producto', true, 'EDE6D0', '1A4D2E', 'left'), celda('Cantidad', true, 'EDE6D0', '1A4D2E', 'center'), celda('Unidad', true, 'EDE6D0', '1A4D2E', 'center'), celda('Subtotal', true, 'EDE6D0', '1A4D2E', 'right')]);
+    pedido.items.forEach(function(it, idxRow){
+      var bg = (idxRow % 2 === 0) ? 'FFFFFF' : 'F7F4EA';
+      rows += fila([celda(it.producto, false, bg, '222222', 'left'), celda(String(it.cantidad), false, bg, '222222', 'center'), celda(it.unidad, false, bg, '222222', 'center'), celda(it.precio>0 ? '$'+Math.round(it.precio).toLocaleString('es-CL') : '-', false, bg, '222222', 'right')]);
     });
-    rows += fila([celda('Total: ' + (totalTxt.join(' | ') || '-'), true, 'F7F4EA'), celda('', false, 'F7F4EA'), celda('', false, 'F7F4EA'), celda('', false, 'F7F4EA')]);
-    body += '<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblBorders><w:top w:val="single" w:sz="6" w:color="6B9362"/><w:left w:val="single" w:sz="6" w:color="6B9362"/><w:bottom w:val="single" w:sz="6" w:color="6B9362"/><w:right w:val="single" w:sz="6" w:color="6B9362"/><w:insideH w:val="single" w:sz="6" w:color="6B9362"/><w:insideV w:val="single" w:sz="6" w:color="6B9362"/></w:tblBorders></w:tblPr>' + rows + '</w:tbl>';
-    body += pVacio();
+    body += '<w:tbl><w:tblPr><w:tblW w:w="0" w:type="auto"/><w:tblCellMar><w:top w:w="60" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/></w:tblCellMar><w:tblBorders><w:top w:val="single" w:sz="8" w:color="1A4D2E"/><w:left w:val="single" w:sz="8" w:color="1A4D2E"/><w:bottom w:val="single" w:sz="8" w:color="1A4D2E"/><w:right w:val="single" w:sz="8" w:color="1A4D2E"/><w:insideH w:val="single" w:sz="4" w:color="C9D6C2"/><w:insideV w:val="single" w:sz="4" w:color="C9D6C2"/></w:tblBorders><w:tblGrid><w:gridCol w:w="3600"/><w:gridCol w:w="1200"/><w:gridCol w:w="1200"/><w:gridCol w:w="1800"/></w:tblGrid></w:tblPr>' + rows + '</w:tbl>';
+    // Barra de total por pedido - fuera de la tabla para que no quede apretada
+    body += para([run('Total: ' + totalTxtFor(pedido.items), true, 24, '1A4D2E')], 'right', 'F7F4EA', 80, 200, false);
   });
-  body += p('Total hoja: $' + Math.round(totalHojaD).toLocaleString('es-CL') + '  |  ' + nombreNeg + ' - Gracias por su compra - Revisa tu pedido antes de salir', true, 22, '2F5233', 'center');
+  // Total hoja - si es $0 no mostramos $0, mostramos kg / unidades como en la hoja bonita
+  var totalHojaParts = [];
+  if(totHojaKg>0) totalHojaParts.push(fmtCant(totHojaKg)+' kg');
+  if(totHojaG>0) totalHojaParts.push(fmtCant(totHojaG)+' g');
+  if(totHojaU>0) totalHojaParts.push(fmtCant(totHojaU)+' unidades');
+  if(totalHojaD>0) totalHojaParts.push('$'+Math.round(totalHojaD).toLocaleString('es-CL'));
+  var totalHojaTxt = totalHojaParts.join('  |  ') || '-';
+  body += para([run('Total hoja: ' + totalHojaTxt, true, 26, '1A4D2E')], 'center', 'EDE6D0', 200, 80, false);
+  body += para([run(nombreNeg + '  -  Gracias por su compra  -  Revisa tu pedido antes de salir', false, 20, '555555', true)], 'center', null, 0, 0, false);
   var documentXml = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
-    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>' + body +
-    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720"/></w:sectPr></w:body></w:document>';
+    '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"><w:body>' + body +
+    '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="720" w:header="360" w:footer="360"/><w:cols w:space="720"/></w:sectPr></w:body></w:document>';
   var contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="jpeg" ContentType="image/jpeg"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>';
   var rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>';
-  var docRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
-  var styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri"/><w:sz w:val="22"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>';
-  // Logo JPEG bytes desde LOGO_EMBEDDED (data:image/jpeg;base64,...)
-  var logoBytes = new Uint8Array(0);
-  try{
-    var logoSrc2 = (typeof LOGO_EMBEDDED !== 'undefined' && LOGO_EMBEDDED) ? LOGO_EMBEDDED : '';
-    if(logoSrc2 && logoSrc2.indexOf('base64,') !== -1){ logoBytes = base64ToBytes(logoSrc2.split('base64,')[1]); }
-    else if(config && config.logo && config.logo.indexOf('base64,') !== -1){ logoBytes = base64ToBytes(config.logo.split('base64,')[1]); }
-  }catch(e){ logoBytes = new Uint8Array(0); }
+  var docRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>' + (tieneLogo ? '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/image1.jpeg"/>' : '') + '</Relationships>';
+  var styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="es-CL"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="120" w:line="276" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults></w:styles>';
+  var logoBytes = logoBytesTmp;
   var archivos = [
     {name: '[Content_Types].xml', data: strToBytes(contentTypes)},
     {name: '_rels/.rels', data: strToBytes(rels)},
@@ -1258,17 +1288,17 @@ function generarDocxReal(){
     {name: 'word/_rels/document.xml.rels', data: strToBytes(docRels)},
     {name: 'word/styles.xml', data: strToBytes(styles)}
   ];
-  if(logoBytes.length > 0){ archivos.push({name: 'word/media/image1.jpeg', data: logoBytes}); }
+  if(tieneLogo && logoBytes.length > 0){ archivos.push({name: 'word/media/image1.jpeg', data: logoBytes}); }
   var blob = crearZipDocx(archivos);
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = 'pedidos_' + fecha.replace(/\//g,'-') + '.docx';
+  a.download = 'pedidos_' + fecha.replace(/\\//g,'-') + '.docx';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} }, 5000);
-  if(st) st.innerHTML = '<div class="status-msg ok">DOCX real descargado con ' + n + ' pedido(s). En Android ponelo en Abrir siempre con tu programa de impresion y elegi la impresora. Ya no hace falta lector PDF.</div>';
+  if(st) st.innerHTML = '<div class="status-msg ok">DOCX bonito descargado con ' + n + ' pedido(s), con logo, colores y totales. En Android sigue abriendo con Abrir siempre con tu programa de impresion.</div>';
 }
 
 function vistaPreviaHoja(){
@@ -1390,7 +1420,7 @@ function cablearEventosEstaticos(){
   }
 }
 // ================= FIN v0.5.0 =================
-// init v1.0.8: cada paso en try/catch, un render fallido no tumba el resto
+// init v1.0.9: cada paso en try/catch, un render fallido no tumba el resto
 try{ cablearEventosEstaticos(); }catch(e){ console.error('init cablear', e); }
 try{ cargarConfig(); }catch(e){ console.error('init cargarConfig', e); }
 try{ cargarCatalogo(); }catch(e){ console.error('init cargarCatalogo', e); }
@@ -1407,7 +1437,7 @@ try{ renderReporte(); }catch(e){ console.error('init renderReporte', e); }
 // 5) pesar y poner valor 6) Generar Word para imprimir y corchetear en la caja
 // 7) NUEVO: Compartir por WhatsApp - genera texto listo para enviar al cliente:
 // "Hola {cliente}, tu pedido en El Castillo: - 2 kg Tomate $... Total $... Revisa tu hoja impresa en la caja. Gracias!"
-// v1.0.8: WhatsApp al cliente desde la hoja
+// v1.0.9: WhatsApp al cliente desde la hoja
 function normalizarTelefonoChile(tel){
   if(!tel) return '';
   let t = String(tel).replace(/[^0-9+]/g,'');
@@ -1472,7 +1502,7 @@ function construirMensajeWhatsApp(){
   }
   return null;
 }
-// v1.0.8: enviar SOLO un pedido a SU cliente
+// v1.0.9: enviar SOLO un pedido a SU cliente
 function construirMensajeWhatsAppPedido(p){
   if(!p) return null;
   const lineas = (p.items || []).map(function(it){ return '- ' + it.cantidad + ' ' + it.unidad + ' ' + it.producto + ' - $' + Math.round(it.precio || 0).toLocaleString('es-CL'); });
@@ -1559,7 +1589,7 @@ function agruparAccionesPrincipales(){
   }
 }
 // Bottom nav: scroll suave a secciones, sin esconder nada para no romper flujo
-function initBottomNav(){ return; /* v1.0.8: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
+function initBottomNav(){ return; /* v1.0.9: los tabs los maneja showTab, este nav viejo solo hacia scroll y peleaba */ }
 function actualizarCarrito(){
   const el = document.getElementById('cartCount');
   if(!el) return;
@@ -1570,7 +1600,7 @@ function actualizarCarrito(){
 document.addEventListener('DOMContentLoaded', ()=>{ agruparAccionesPrincipales(); initBottomNav(); actualizarCarrito(); });
 setTimeout(()=>{ agruparAccionesPrincipales(); actualizarCarrito(); }, 800);
 
-// v0.8.1 bottom nav DESACTIVADO en v1.0.8 - lo maneja showTab, el viejo solo hacia scroll
+// v0.8.1 bottom nav DESACTIVADO en v1.0.9 - lo maneja showTab, el viejo solo hacia scroll
 (function(){ return; })();
 
 // ================= v0.9.1 Tabs independientes =================
@@ -1612,7 +1642,7 @@ function initTabsV091(){
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
 
-// ================= v1.0.8 CORREGIDA: productos nuevos + clientes automaticos =================
+// ================= v1.0.9 CORREGIDA: productos nuevos + clientes automaticos =================
 // Negocio fijo - ya no se edita
 const NEGOCIO_FIJO = { nombre: 'El Castillo de la Fruta', direccion: '', telefono: '' };
 function normTxt(s){ return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim(); }
@@ -1652,7 +1682,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
   const old = document.getElementById('avisoNoReconocidos'); if(old) old.remove();
   wrap.prepend(div);
   div.querySelectorAll('[data-agregar-nuevo]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.8: crea el producto altiro y re-analiza, sin perder cantidad/unidad
+    // v1.0.9: crea el producto altiro y re-analiza, sin perder cantidad/unidad
     const nombre = b.dataset.agregarNuevo; const cant = parseFloat(b.dataset.cantidad || '1') || 1; const uni = b.dataset.unidad || 'kg';
     try{
       const lista = obtenerCatalogoUnificado();
@@ -1666,7 +1696,7 @@ function mostrarProductosNoReconocidos(noReconocidos){
     const st = document.getElementById('statusMsg'); if(st) st.innerHTML = '<div class="status-msg ok">\u2705 ' + escapeHtml(nombre) + ' agregado. Ya aparece en la revisi\u00f3n.</div>';
   }); });
   div.querySelectorAll('[data-corregir-a]').forEach(function(b){ b.addEventListener('click', function(){
-    // v1.0.8 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
+    // v1.0.9 IDs correctos: textoInput + btnAnalizarPedido (antes usaba pedidoTexto / btnAnalizar que no existen)
     const ta = document.getElementById('textoInput');
     if(ta){ ta.value = ta.value.split(b.dataset.corregirDe).join(b.dataset.corregirA); const btn = document.getElementById('btnAnalizarPedido'); if(btn) btn.click(); }
   }); });
@@ -1687,7 +1717,7 @@ function initAgregarProductoNuevo(){
     let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
     if(cat.some(p=> normTxt(p.nombre||p.name)==normTxt(nombre))){ msg.textContent='Ese producto ya está en la lista.'; msg.style.color='#B91C1C'; return; }
     cat.push({ nombre, name:nombre, unidad, precio, alias });
-    // v1.0.8: guardar en las 3 claves + memoria para que el parser lo vea altiro
+    // v1.0.9: guardar en las 3 claves + memoria para que el parser lo vea altiro
     try{ guardarCatalogoUnificado(cat); }catch(e){ localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); try{ localStorage.setItem('catalogo', JSON.stringify(cat)); }catch(e2){} }
     msg.textContent = `✅ ${nombre} agregado. Ya lo puedes usar en el próximo pedido.`; msg.style.color='#14532D';
     document.getElementById('nuevoProdNombre').value=''; document.getElementById('nuevoProdPrecio').value=''; document.getElementById('nuevoProdAlias').value='';
