@@ -5,6 +5,23 @@
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
+  <style>
+#listaProductosConfig > * { position: relative !important; }
+.btn-x-transparente {
+  position: absolute !important;
+  top: 6px !important;
+  right: 6px !important;
+  background: transparent !important;
+  border: none !important;
+  color: #B0B0B0 !important;
+  font-size: 18px !important;
+  cursor: pointer !important;
+  padding: 6px 8px !important;
+  border-radius: 50% !important;
+  z-index: 5 !important;
+}
+.btn-x-transparente:active { color: #E11D48 !important; background: #FFF1F1 !important; }
+</style>
 </head><body>
 <header class="app-header" style="background:#fff;border-bottom:1px solid #E8EDE9;position:sticky;top:0;z-index:20;padding:10px 14px;">
   <div style="display:flex;align-items:center;gap:12px;max-width:520px;margin:0 auto;">
@@ -112,5 +129,59 @@
 </nav>
 <script src="js/tabs.js?v=113"></script>
 <script src="js/app.js?v=113"></script>
-
+<script>
+(function(){
+  function buscarNombre(card){
+    var el = card.querySelector('b, strong');
+    if(el && el.textContent.trim()) return el.textContent.trim();
+    return (card.textContent||'').trim().split('\n')[0].trim();
+  }
+  function borrarDeStorage(nombre){
+    for(var i=0;i<localStorage.length;i++){
+      var key = localStorage.key(i);
+      if(!key || !/castillo|producto|catalogo/i.test(key)) continue;
+      try{
+        var arr = JSON.parse(localStorage.getItem(key));
+        if(!Array.isArray(arr)) continue;
+        var filtrado = arr.filter(function(p){
+          if(typeof p === 'string') return p.toLowerCase() !== nombre.toLowerCase();
+          var n = p.nombre || p.name || '';
+          return String(n).toLowerCase() !== nombre.toLowerCase();
+        });
+        if(filtrado.length !== arr.length) localStorage.setItem(key, JSON.stringify(filtrado));
+      }catch(e){}
+    }
+  }
+  function ponerX(){
+    var cont = document.getElementById('listaProductosConfig');
+    if(!cont) return;
+    for(var i=0;i<cont.children.length;i++){
+      var card = cont.children[i];
+      if(card.querySelector('.btn-x-transparente')) continue;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn-x-transparente';
+      btn.textContent = '✕';
+      btn.title = 'Borrar este producto';
+      (function(c, b){
+        b.addEventListener('click', function(ev){
+          ev.stopPropagation(); ev.preventDefault();
+          var nombre = buscarNombre(c);
+          borrarDeStorage(nombre);
+          c.remove();
+          var cnt = document.getElementById('catCount2');
+          if(cnt){ var n = parseInt(cnt.textContent||'0',10); if(!isNaN(n) && n>0) cnt.textContent = String(n-1); }
+        });
+      })(card, btn);
+      card.appendChild(btn);
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    var cont = document.getElementById('listaProductosConfig');
+    if(!cont) return;
+    new MutationObserver(ponerX).observe(cont, { childList: true, subtree: true });
+    ponerX(); setTimeout(ponerX, 500); setTimeout(ponerX, 1500);
+  });
+})();
+</script>
 </body></html>
