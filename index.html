@@ -6,21 +6,22 @@
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
   <style>
-#listaProductosConfig > * { position: relative !important; }
+#listaProductosConfig > * { position: relative !important; padding-right: 36px !important; }
 .btn-x-transparente {
   position: absolute !important;
-  top: 6px !important;
-  right: 6px !important;
-  background: transparent !important;
-  border: none !important;
-  color: #B0B0B0 !important;
-  font-size: 18px !important;
+  top: 50% !important;
+  right: 4px !important;
+  transform: translateY(-50%) !important;
+  background: rgba(255,255,255,0.9) !important;
+  border: 1px solid #E5E7EB !important;
+  color: #6B7280 !important;
+  font-size: 20px !important;
+  line-height: 1 !important;
   cursor: pointer !important;
-  padding: 6px 8px !important;
+  padding: 4px 8px !important;
   border-radius: 50% !important;
-  z-index: 5 !important;
+  z-index: 10 !important;
 }
-.btn-x-transparente:active { color: #E11D48 !important; background: #FFF1F1 !important; }
 </style>
 </head><body>
 <header class="app-header" style="background:#fff;border-bottom:1px solid #E8EDE9;position:sticky;top:0;z-index:20;padding:10px 14px;">
@@ -131,27 +132,6 @@
 <script src="js/app.js?v=113"></script>
 <script>
 (function(){
-  function buscarNombre(card){
-    var el = card.querySelector('b, strong');
-    if(el && el.textContent.trim()) return el.textContent.trim();
-    return (card.textContent||'').trim().split('\n')[0].trim();
-  }
-  function borrarDeStorage(nombre){
-    for(var i=0;i<localStorage.length;i++){
-      var key = localStorage.key(i);
-      if(!key || !/castillo|producto|catalogo/i.test(key)) continue;
-      try{
-        var arr = JSON.parse(localStorage.getItem(key));
-        if(!Array.isArray(arr)) continue;
-        var filtrado = arr.filter(function(p){
-          if(typeof p === 'string') return p.toLowerCase() !== nombre.toLowerCase();
-          var n = p.nombre || p.name || '';
-          return String(n).toLowerCase() !== nombre.toLowerCase();
-        });
-        if(filtrado.length !== arr.length) localStorage.setItem(key, JSON.stringify(filtrado));
-      }catch(e){}
-    }
-  }
   function ponerX(){
     var cont = document.getElementById('listaProductosConfig');
     if(!cont) return;
@@ -162,12 +142,24 @@
       btn.type = 'button';
       btn.className = 'btn-x-transparente';
       btn.textContent = '✕';
-      btn.title = 'Borrar este producto';
       (function(c, b){
         b.addEventListener('click', function(ev){
           ev.stopPropagation(); ev.preventDefault();
-          var nombre = buscarNombre(c);
-          borrarDeStorage(nombre);
+          var nombreEl = c.querySelector('b, strong');
+          var nombre = nombreEl ? nombreEl.textContent.trim() : (c.textContent||'').split('•')[0].trim();
+          for(var k=0;k<localStorage.length;k++){
+            var key = localStorage.key(k);
+            if(!key || !/castillo|producto|catalogo/i.test(key)) continue;
+            try{
+              var arr = JSON.parse(localStorage.getItem(key));
+              if(!Array.isArray(arr)) continue;
+              var filtrado = arr.filter(function(p){
+                if(typeof p === 'string') return p.toLowerCase() !== nombre.toLowerCase();
+                return String(p.nombre||p.name||'').toLowerCase() !== nombre.toLowerCase();
+              });
+              if(filtrado.length !== arr.length) localStorage.setItem(key, JSON.stringify(filtrado));
+            }catch(e){}
+          }
           c.remove();
           var cnt = document.getElementById('catCount2');
           if(cnt){ var n = parseInt(cnt.textContent||'0',10); if(!isNaN(n) && n>0) cnt.textContent = String(n-1); }
@@ -176,12 +168,7 @@
       card.appendChild(btn);
     }
   }
-  document.addEventListener('DOMContentLoaded', function(){
-    var cont = document.getElementById('listaProductosConfig');
-    if(!cont) return;
-    new MutationObserver(ponerX).observe(cont, { childList: true, subtree: true });
-    ponerX(); setTimeout(ponerX, 500); setTimeout(ponerX, 1500);
-  });
+  document.addEventListener('DOMContentLoaded', function(){ ponerX(); setInterval(ponerX, 800); });
+  setInterval(ponerX, 800);
 })();
 </script>
-</body></html>
