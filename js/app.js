@@ -884,6 +884,11 @@ function agregarPedidoALaHoja(){
     };
     pedidosPendientes.push(pedidoObj);
     registrarVenta(pedidoObj);
+    // v1.1.0 Cuentas: al agregar a la hoja, crear cuenta en Sheets (solo total, sin detalle)
+    try{
+      var totCuenta = items.reduce(function(a, it){ return a + (Number(it.precio)||0); }, 0);
+      if(typeof crearCuentaDesdePedido==='function') crearCuentaDesdePedido(cliente, totCuenta);
+    }catch(e){}
 
     if(esFiado){
       const totD = items.reduce((a, it) => a + it.precio, 0);
@@ -1641,6 +1646,7 @@ function showTab(tab){ if(!tab) return;
   if(tab==='clientes'){ if(typeof renderReporte==='function') renderReporte(); if(typeof renderClientesAutomaticos==='function') renderClientesAutomaticos(); }
   if(tab==='productos' && typeof renderListaProductosConfig==='function') renderListaProductosConfig();
   if(tab==='pedidos' && typeof renderPedidosPendientes==='function') renderPedidosPendientes();
+  if(tab==='cuentas' && typeof renderCuentas==='function') renderCuentas();
 }
 function initTabsV091(){
   document.querySelectorAll('.nav-item').forEach(b=>{
@@ -1659,7 +1665,7 @@ function initTabsV091(){
   // Tab guardada o Inicio por defecto
   let saved = 'inicio';
   try{ saved = localStorage.getItem('castillo_tab_activa') || 'inicio'; }catch(e){}
-  if(!['inicio','pedidos','clientes','productos'].includes(saved)) saved='inicio';
+  if(!['inicio','pedidos','clientes','productos','cuentas'].includes(saved)) saved='inicio';
   showTab(saved);
 }
 document.addEventListener('DOMContentLoaded', initTabsV091);
@@ -1750,15 +1756,39 @@ function initAgregarProductoNuevo(){
   if(busc) busc.addEventListener('input', renderListaProductosConfig);
 }
 function renderListaProductosConfig(){
-  const cont = document.getElementById('listaProductosConfig'); if(!cont) return;
-  let cat=[]; try{ cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]'); }catch(e){}
+  const cont = document.getElementById('listaProductosConfig');
+  if(!cont) return;
+  let cat=[]; try{cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]');}catch(e){}
   const q = normTxt(document.getElementById('buscarProductoNuevo')?.value||'');
   const filtrados = q ? cat.filter(p=> normTxt(p.nombre||p.name).includes(q)) : cat;
   const c2 = document.getElementById('catCount2'); if(c2) c2.textContent = cat.length;
   const cOld = document.getElementById('catCount'); if(cOld) cOld.textContent = cat.length;
   if(!filtrados.length){ cont.innerHTML='<p style="color:#6B7280;font-size:13px;">Sin productos con ese nombre. Agrégalo arriba.</p>'; return; }
-  cont.innerHTML = filtrados.slice(-50).reverse().map(p=>`<div style="display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #F3F4F6;"><span><b>${p.nombre||p.name}</b> <span style="color:#6B7280;">· ${p.unidad||'kg'}</span></span><b>$${(p.precio||0).toLocaleString('es-CL')}</b></div>`).join('');
+  cont.innerHTML = filtrados.slice(-50).reverse().map(function(p){
+    const nombre = p.nombre || p.name || '';
+    const unidad = p.unidad || 'kg';
+    const precio = p.precio || '-';
+    const alias = p.alias ? ' • También: ' + p.alias : '';
+    return '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;border:1px solid #EDEDED;border-radius:10px;padding:10px;margin-bottom:8px;position:relative;padding-right:36px;">'
+      + '<div><b>' + nombre + '</b><br><small style="color:#6B7280;">' + unidad + ' • $' + precio + alias + '</small></div>'
+      + '<button type="button" class="btn-x-prod" data-nombre="' + nombre + '" style="position:absolute;top:4px;right:4px;background:transparent;border:none;color:#B0B0B0;font-size:18px;cursor:pointer;padding:6px 8px;border-radius:50%;">✕</button>'
+      + '</div>';
+  }).join('');
+  cont.querySelectorAll('.btn-x-prod').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const nombre = this.getAttribute('data-nombre');
+      eliminarProductoListaConfig(nombre);
+    });
+  });
 }
+function eliminarProductoListaConfig(nombre){
+  let cat=[]; try{cat=JSON.parse(localStorage.getItem('castillo_catalogo')||'[]');}catch(e){}
+  cat = cat.filter(function(p){ return normTxt(p.nombre||p.name) !== normTxt(nombre); });
+  try{ if(typeof guardarCatalogoUnificado==='function') guardarCatalogoUnificado(cat); else localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); }catch(e){ localStorage.setItem('castillo_catalogo', JSON.stringify(cat)); }
+  if(typeof renderListaProductosConfig==='function') renderListaProductosConfig();
+  if(typeof renderCatalogo==='function') { try{ renderCatalogo(); }catch(e){} }
+}
+window.eliminarProductoListaConfig = eliminarProductoListaConfig;
 // --- Clientes automaticos desde pedidos ---
 function obtenerClientesAutomaticos(){
   // Fuente 1: pedidos pendientes + historial guardado
@@ -1822,6 +1852,79 @@ function initClientesAutomaticos(){
   const chip0 = document.querySelector('.chip-semana'); if(chip0) chip0.classList.add('activo');
 }
 document.addEventListener('DOMContentLoaded', ()=>{ initAgregarProductoNuevo(); initClientesAutomaticos(); renderListaProductosConfig(); renderClientesAutomaticos(); });
+
+
+// ================= v1.1.0 CUENTAS - Solo total, sin detalle de productos =================
+var SHEETS_CUENTAS_URL = 'https://script.google.com/macros/s/AKfycbxi9x8QyGAhttSsB87hoaWUhP1eE294_HCqYIa9BTzbO9oszRZuPJcg2_COhRoPYfd78A/exec';
+function idCuenta(fecha, cliente, total){
+  return (fecha + '|' + (cliente||'').toLowerCase().trim() + '|' + total).replace(/\s+/g,'_');
+}
+function obtenerCuentasLocal(){
+  try{ return JSON.parse(localStorage.getItem('castillo_cuentas')||'[]'); }catch(e){ return []; }
+}
+function guardarCuentasLocal(lista){
+  try{ localStorage.setItem('castillo_cuentas', JSON.stringify(lista)); }catch(e){}
+}
+function crearCuentaDesdePedido(cliente, total){
+  var fecha = new Date().toLocaleDateString('es-CL');
+  var id = idCuenta(fecha, cliente, total);
+  var cuentas = obtenerCuentasLocal();
+  var yaExiste = cuentas.some(function(c){ return c.id === id; });
+  if(yaExiste){ /* igual mandamos a Sheets por si no llegó antes */ }
+  var nueva = { id: id, fecha: fecha, cliente: cliente, total: Number(total)||0, abono: 0, saldo: Number(total)||0, estado: 'Pendiente', fechaPago: '' };
+  if(!yaExiste){ cuentas.push(nueva); guardarCuentasLocal(cuentas); }
+  try{
+    var qs = '?action=agregar&fecha=' + encodeURIComponent(fecha) + '&cliente=' + encodeURIComponent(cliente) + '&total=' + encodeURIComponent(Number(total)||0) + '&abono=0&estado=' + encodeURIComponent('Pendiente') + '&fechaPago=&id=' + encodeURIComponent(id);
+    fetch(SHEETS_CUENTAS_URL + qs, { method: 'GET', mode: 'no-cors', keepalive: true }).catch(function(){});
+  }catch(e){}
+  return id;
+}
+function renderCuentas(){
+  var cont = document.getElementById('listaCuentas'); if(!cont) return;
+  var cuentas = obtenerCuentasLocal();
+  var totalVendido = 0, totalCobrado = 0, totalPendiente = 0;
+  cuentas.forEach(function(c){ totalVendido += Number(c.total)||0; totalCobrado += Number(c.abono)||0; totalPendiente += Number(c.saldo)||0; });
+  var resumen = document.getElementById('resumenCuentas');
+  if(resumen) resumen.innerHTML = '<b>Total vendido:</b> $' + totalVendido.toLocaleString('es-CL') + ' &nbsp;|&nbsp; <b>Cobrado:</b> $' + totalCobrado.toLocaleString('es-CL') + ' &nbsp;|&nbsp; <b>Pendiente:</b> $' + totalPendiente.toLocaleString('es-CL');
+  if(!cuentas.length){ cont.innerHTML = '<p style="color:#6B7280;font-size:13px;">Aún no hay cuentas. Cuando agregues un pedido a la hoja, va a aparecer acá solo con el total.</p>'; return; }
+  cont.innerHTML = cuentas.slice().reverse().map(function(c){
+    var color = c.estado === 'Pagado' ? '#14532D' : (c.estado === 'Abonó' ? '#D97706' : '#B91C1C');
+    var idAttr = String(c.id).replace(/"/g, '&quot;');
+    return '<div style="border:1px solid #EDEDED;border-radius:10px;padding:10px;margin-bottom:8px;">'
+      + '<div style="display:flex;justify-content:space-between;gap:8px;"><b>' + c.cliente + '</b><span style="color:' + color + ';font-weight:800;">' + c.estado + '</span></div>'
+      + '<small style="color:#6B7280;">' + c.fecha + ' • Total: $' + Number(c.total).toLocaleString('es-CL') + ' • Abono: $' + Number(c.abono).toLocaleString('es-CL') + ' • Saldo: $' + Number(c.saldo).toLocaleString('es-CL') + '</small>'
+      + '<div style="display:flex;gap:8px;margin-top:8px;"><button type="button" class="btn-cuenta-pagado" data-id="' + idAttr + '" style="flex:1;background:#14532D;color:#fff;border:0;border-radius:999px;padding:8px;cursor:pointer;">Pagado</button>'
+      + '<button type="button" class="btn-cuenta-abono" data-id="' + idAttr + '" style="flex:1;background:#fff;border:1px solid #E5E7EB;border-radius:999px;padding:8px;cursor:pointer;">Agregar Abono</button></div>'
+      + '</div>';
+  }).join('');
+  cont.querySelectorAll('.btn-cuenta-pagado').forEach(function(btn){
+    btn.addEventListener('click', function(){ marcarCuentaPagada(this.getAttribute('data-id')); });
+  });
+  cont.querySelectorAll('.btn-cuenta-abono').forEach(function(btn){
+    btn.addEventListener('click', function(){ agregarAbonoCuenta(this.getAttribute('data-id')); });
+  });
+}
+function marcarCuentaPagada(id){
+  var cuentas = obtenerCuentasLocal();
+  var c = cuentas.find(function(x){ return String(x.id) === String(id); }); if(!c) return;
+  c.abono = c.total; c.saldo = 0; c.estado = 'Pagado'; c.fechaPago = new Date().toLocaleDateString('es-CL');
+  guardarCuentasLocal(cuentas); renderCuentas();
+  try{ var qsP = '?action=pagado&fecha=' + encodeURIComponent(c.fecha) + '&cliente=' + encodeURIComponent(c.cliente) + '&total=' + encodeURIComponent(c.total) + '&abono=' + encodeURIComponent(c.abono) + '&fechaPago=' + encodeURIComponent(c.fechaPago) + '&id=' + encodeURIComponent(c.id); fetch(SHEETS_CUENTAS_URL + qsP, { method:'GET', mode:'no-cors', keepalive: true }).catch(function(){}); }catch(e){}
+}
+function agregarAbonoCuenta(id){
+  var monto = parseFloat(prompt('¿Cuánto abonó?')) || 0; if(!monto) return;
+  var cuentas = obtenerCuentasLocal();
+  var c = cuentas.find(function(x){ return String(x.id) === String(id); }); if(!c) return;
+  c.abono = (Number(c.abono)||0) + monto; c.saldo = (Number(c.total)||0) - c.abono; if(c.saldo < 0) c.saldo = 0;
+  c.estado = c.saldo === 0 ? 'Pagado' : 'Abonó'; if(c.saldo === 0) c.fechaPago = new Date().toLocaleDateString('es-CL');
+  guardarCuentasLocal(cuentas); renderCuentas();
+  try{ var qsA = '?action=abono&fecha=' + encodeURIComponent(c.fecha) + '&cliente=' + encodeURIComponent(c.cliente) + '&total=' + encodeURIComponent(c.total) + '&abono=' + encodeURIComponent(monto) + '&fechaPago=' + encodeURIComponent(c.fechaPago || '') + '&id=' + encodeURIComponent(c.id); fetch(SHEETS_CUENTAS_URL + qsA, { method:'GET', mode:'no-cors', keepalive: true }).catch(function(){}); }catch(e){}
+}
+window.renderCuentas = renderCuentas;
+window.marcarCuentaPagada = marcarCuentaPagada;
+window.agregarAbonoCuenta = agregarAbonoCuenta;
+window.crearCuentaDesdePedido = crearCuentaDesdePedido;
+// ================= FIN v1.1.0 CUENTAS =================
 
 window.obtenerCatalogoUnificado = obtenerCatalogoUnificado;
 window.normalizarTelefonoChile = normalizarTelefonoChile;

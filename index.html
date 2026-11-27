@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>El Castillo de la Fruta - Pedidos</title>
-<link rel="stylesheet" href="css/styles.css?v=113">
+<link rel="stylesheet" href="css/styles.css?v=114">
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14532D">
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes">
 <link rel="apple-touch-icon" href="img/logo.png">
@@ -103,14 +103,24 @@
   </section>
   <p style="text-align:center;color:#9CA3AF;font-size:12px;margin:8px 0 0;">El Castillo de la Fruta • Los datos del negocio ya están fijos en la hoja y en el Word.</p>
   </div>
+  <div id="tab-cuentas" class="tab-page">
+  <section class="card" style="background:#fff;border:1px solid #E8EDE9;border-radius:20px;padding:16px;margin-bottom:12px;">
+    <h3 style="margin:0 0 4px;">💰 Cuentas — solo total, sin detalle de productos</h3>
+    <p style="margin:0 0 14px;color:#6B7280;font-size:13px;">Cuando agregas un pedido a la hoja, se crea sola la cuenta acá y en Google Sheets. Tú después marcas si pagó o abonó.</p>
+    <div id="resumenCuentas" style="font-size:13px;margin-bottom:12px;background:#F0FDF4;border:1px solid #E8EDE9;border-radius:12px;padding:10px;"></div>
+    <div id="listaCuentas"></div>
+    <p style="color:#6B7280;font-size:12px;margin:12px 0 0;">Se guarda solo Fecha, Cliente y Total. El detalle de productos no se guarda en Cuentas.</p>
+  </section>
+  </div>
 </main>
 <nav style="position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #E8EDE9;display:flex;justify-content:space-around;padding:8px 8px 12px;z-index:30;box-shadow:0 -2px 12px rgba(0,0,0,.06);">
   <button type="button" class="nav-item active" data-nav="inicio" style="border:0;background:#F0FDF4;color:#14532D;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>🏠</span><span style="font-size:11px;font-weight:600;">Inicio</span></button>
   <button type="button" class="nav-item" data-nav="pedidos" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>📋</span><span style="font-size:11px;">Pedidos</span></button>
   <button type="button" class="nav-item" data-nav="clientes" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>👥</span><span style="font-size:11px;">Clientes</span></button>
   <button type="button" class="nav-item" data-nav="productos" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>🥬</span><span style="font-size:11px;">Productos</span></button>
+  <button type="button" class="nav-item" data-nav="cuentas" style="border:0;background:none;color:#9CA3AF;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 14px;border-radius:12px;cursor:pointer;font-size:20px;"><span>💰</span><span style="font-size:11px;">Cuentas</span></button>
 </nav>
-<script src="js/tabs.js?v=113"></script>
-<script src="js/app.js?v=113"></script>
+<script src="js/tabs.js?v=114"></script>
+<script src="js/app.js?v=114"></script>
 
 </body></html>
